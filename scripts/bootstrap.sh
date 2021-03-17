@@ -282,10 +282,10 @@ else
 fi
 
 # Do the build
-vcpkgToolReleaseTag="2021-02-24-d67989bce1043b98092ac45996a8230a059a2d7e"
-vcpkgToolReleaseSha="0b0f2cd40aa92556c28e1dfa9f8356313a859fb6acb6c730821a06bd9d554ab1ea0622da4026ea66fb11b9ed4fda1316cc388067d51ff1f09af85d033fe4323d"
+vcpkgToolReleaseTag="dg0yt-2021-03-17"
+vcpkgToolReleaseSha="6e0cc97d1df1275eea317ac4e4d75b5d6847d182c4e48ac0d0a31df3720f84fb3215faf4be6338db7e6907e9802e7515bd40fd394bfe3ac5a5a864f121bf41f5"
 vcpkgToolReleaseTarball="$vcpkgToolReleaseTag.tar.gz"
-vcpkgToolUrl="https://github.com/microsoft/vcpkg-tool/archive/$vcpkgToolReleaseTarball"
+vcpkgToolUrl="https://github.com/dg0yt/vcpkg-tool/archive/$vcpkgToolReleaseTarball"
 baseBuildDir="$vcpkgRootDir/buildtrees/_vcpkg"
 buildDir="$baseBuildDir/build"
 tarballPath="$downloadsDir/$vcpkgToolReleaseTarball"
