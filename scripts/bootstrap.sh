@@ -9,6 +9,7 @@ done
 # Argument parsing
 vcpkgDisableMetrics="OFF"
 vcpkgUseSystem=false
+vcpkgUseMinGW=false
 vcpkgAllowAppleClang=false
 vcpkgBuildTests="OFF"
 for var in "$@"
@@ -16,6 +17,9 @@ do
     if [ "$var" = "-disableMetrics" -o "$var" = "--disableMetrics" ]; then
         vcpkgDisableMetrics="ON"
     elif [ "$var" = "-useSystemBinaries" -o "$var" = "--useSystemBinaries" ]; then
+        vcpkgUseSystem=true
+    elif [ "$var" = "-useMinGW" -o "$var" = "--useMinGW" ]; then
+        vcpkgUseMinGW=true
         vcpkgUseSystem=true
     elif [ "$var" = "-allowAppleClang" -o "$var" = "--allowAppleClang" ]; then
         vcpkgAllowAppleClang=true
@@ -28,6 +32,8 @@ do
         echo "    -help                Display usage help"
         echo "    -disableMetrics      Do not build metrics reporting into the executable"
         echo "    -useSystemBinaries   Force use of the system utilities for building vcpkg"
+        echo "    -useMinGW            Force use of MinGW on Windows (implies use of system"
+        echo "                         utilities for building vcpkg"
         echo "    -allowAppleClang     Set VCPKG_ALLOW_APPLE_CLANG to build vcpkg in apple with clang anyway"
         exit 1
     else
@@ -38,7 +44,7 @@ done
 
 # Enable using this entry point on windows from git bash by redirecting to the .bat file.
 unixName=$(uname -s | sed 's/MINGW.*_NT.*/MINGW_NT/')
-if [ "$unixName" = "MINGW_NT" ]; then
+if [ "$unixName" = "MINGW_NT" -a "$vcpkgUseMinGW" != "true" ]; then
     if [ "$vcpkgDisableMetrics" = "ON" ]; then
         args="-disableMetrics"
     else
