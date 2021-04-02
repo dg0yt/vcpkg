@@ -243,11 +243,12 @@ function(vcpkg_configure_make)
 
     set(REQUIRES_AUTOGEN FALSE) # use autogen.sh
     set(REQUIRES_AUTOCONFIG FALSE) # use autotools and configure.ac
-    if(EXISTS "${SRC_DIR}/configure" AND "${SRC_DIR}/configure.ac") # remove configure; rerun autoconf
-        if(NOT VCPKG_MAINTAINER_SKIP_AUTOCONFIG) # If fixing bugs skipping autoconfig saves a lot of time
+    if(_csc_AUTOCONFIG)
+        if(NOT EXISTS "${SRC_DIR}/configure.ac")
+            message(FATAL_ERROR "${PORT} requires autoconf but configure.ac does not exist")
+        elseif(NOT VCPKG_MAINTAINER_SKIP_AUTOCONFIG) # If fixing bugs skipping autoconfig saves a lot of time
             set(REQUIRES_AUTOCONFIG TRUE)
             file(REMOVE "${SRC_DIR}/configure") # remove possible autodated configure scripts
-            set(_csc_AUTOCONFIG ON)
         endif()
     elseif(EXISTS "${SRC_DIR}/configure" AND NOT _csc_SKIP_CONFIGURE) # run normally; no autoconf or autgen required
     elseif(EXISTS "${SRC_DIR}/configure.ac") # Run autoconfig
