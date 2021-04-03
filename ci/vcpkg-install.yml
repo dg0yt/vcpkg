@@ -1,0 +1,38 @@
+# Copyright 2021 Kai Pastor <dg0yt@darc.de>
+
+parameters:
+- name: packages
+  displayName: Packages to be build
+  type: string
+- name: timeout
+  displayName: Build task timeout in minutes
+  type: number
+  default: 60
+
+steps:
+  - bash: |
+      set -e
+      set -o pipefail
+      if [[ ! " ${PACKAGES}" =~ ^(  *([a-zA-Z0-9][-._a-zA-Z0-9]*|--debug))*$ ]] ; then
+          echo "##vso[task.logissue type=error]Invalid package name '${PACKAGES}'"
+          exit 1
+      fi
+      if [ -n "${VCPKG_DEFAULT_BINARY_CACHE}" ] ; then
+          mkdir -p "${VCPKG_DEFAULT_BINARY_CACHE//\\//}"
+      fi
+      case "$(Agent.OS)" in
+      Darwin)
+          SED=sed
+          ;;
+      *)
+          SED="sed -u"
+          ;;
+      esac
+      $(wrapper) "$(vcpkg) install ${PACKAGES}" \
+        | $SED -f ci/format-for-azure-pipelines.sed
+    env:
+      PACKAGES: ${{ parameters.packages }}
+    timeoutInMinutes: ${{ parameters.timeout }}
+    continueOnError: true
+    displayName: vcpkg install ${{ parameters.packages }}
+

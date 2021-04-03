@@ -1,0 +1,209 @@
+# Copyright 2021 Kai Pastor <dg0yt@darc.de>
+
+parameters:
+- name: packages
+  displayName: Packages to be build
+  type: string
+  default: ci
+
+- name: buildType
+  displayName: Build type
+  type: string
+  default: release
+  values:
+  - release
+  - debug
+  - release+debug
+
+- name: timeout
+  displayName: Build task timeout in minutes
+  type: number
+  default: 60
+
+- name: cacheRevision
+  displayName: Cache revision number
+  type: string
+  default: 2021-04-05.4
+
+- name: reuseDownloads
+  displayName: Reuse cached source downloads
+  type: boolean
+  default: true
+
+- name: keepDownloads
+  displayName: Keep source downloads
+  type: boolean
+  default: false
+
+
+resources:
+  pipelines:
+  - pipeline: artifacts
+    source: dg0yt.vcpkg
+    tags:
+    - cache
+
+
+variables:
+  vcpkg:    vcpkg
+  wrapper:  eval
+  VCPKG_DOWNLOADS: $(Build.StagingDirectory)/downloads
+  VCPKG_DEFAULT_BINARY_CACHE: $(Build.StagingDirectory)/binary
+  VCPKG_OVERLAY_PORTS: $(Build.SourcesDirectory)/ci
+
+
+stages:
+- stage: Download
+  variables:
+    vcpkg: vcpkg --only-downloads --keep-going
+  jobs:
+  - job: Download
+    pool:
+      vmImage: windows-2019
+    steps:
+    - task: Cache@2
+      inputs:
+        path: $(VCPKG_DOWNLOADS)
+        key: '"sources" | "${{ parameters.packages }}" | "${{ parameters.cacheRevision }}"'
+        restoreKeys: |
+              "sources" | "ci"
+      displayName: Cache downloads
+
+    - ${{ if eq(parameters.reuseDownloads, true) }}:
+      - download: artifacts
+        artifact: sources
+        continueOnError: true
+        displayName: Download source artifacts
+      - bash: |
+          mkdir -p "${VCPKG_DOWNLOADS//\\//}"
+          for I in artifacts/sources/*; do
+              if test -f "$I"; then
+                  echo "${I##*/}"
+                  mv "$I" "${VCPKG_DOWNLOADS//\\//}/"
+              fi
+          done
+        displayName: Merge artifacts into cache
+
+    - template: vcpkg-install.yml
+      parameters:
+        timeout: ${{ parameters.timeout }}
+        packages: ${{ parameters.packages }}
+
+    - bash: |
+        for I in *; do
+            if test -d "$I"; then rm -Rf "$I"; fi
+        done
+        ls -l
+        # Unrelated to downloads, but doesn't need separate step
+        echo "##vso[build.updatebuildnumber]"_`sed -e 's/[^-a-zA-Z0-9.]/_/g' <<END_BUILDNUMBER
+        $PACKAGES
+        END_BUILDNUMBER
+        `_$(Build.BuildNumber)
+      env:
+        PACKAGES: ${{ parameters.packages }}
+      workingDirectory: $(VCPKG_DOWNLOADS)
+      displayName: Revise downloads
+
+    - ${{ if eq(parameters.keepDownloads, true) }}:
+      - bash: |
+          rm -Rf msys-* *.nupkg *.msi
+          ls -l
+        workingDirectory: $(VCPKG_DOWNLOADS)
+        displayName: Reduce downloads to sources
+      - publish: $(VCPKG_DOWNLOADS)
+        artifact: sources
+        displayName: Publish source artifacts
+
+- stage: Build
+  jobs:
+  - job: Build
+    strategy:
+      matrix:
+        'MSVC':
+          image: 'windows-2019'
+        'MINGW64':
+          image: 'windows-2019'
+          wrapper: ci/msys2bash.cmd -c
+          vcpkg: C:/vcpkg/vcpkg
+          MSYSTEM: MINGW64
+          MSYS2_PATH_TYPE: inherit
+          VCPKG_DEFAULT_TRIPLET: x64-mingw-dynamic
+          VCPKG_DEFAULT_HOST_TRIPLET: x64-mingw-dynamic
+          VCPKG_FORCE_SYSTEM_BINARIES: 1
+        'Linux':
+          image: 'ubuntu-18.04'
+        'macOS':
+          image: 'macOS-10.15'
+        'Android-arm64':
+          image: 'macOS-10.15'
+          VCPKG_DEFAULT_TRIPLET: arm64-android
+    pool:
+      vmImage: $(image)
+
+    steps:
+    - task: Cache@2
+      inputs:
+        path: $(VCPKG_DOWNLOADS)
+        key: '"downloads_$(image)_${{ parameters.cacheRevision }}" | "$(VCPKG_DEFAULT_TRIPLET)" | "${{ parameters.packages }}"'
+        restoreKeys: |
+              "downloads_$(image)_${{ parameters.cacheRevision }}" | "$(VCPKG_DEFAULT_TRIPLET)"
+              "downloads_$(image)_${{ parameters.cacheRevision }}"
+              "sources" | "${{ parameters.packages }}"
+      displayName: Prepare cache for downloads
+
+    - bash: |
+        set -e
+        case "$(Agent.OS)" in
+        Windows*)
+            ;;
+        *)
+            mkdir -p "${VCPKG_DOWNLOADS//\\//}"
+            ( cd "${VCPKG_DOWNLOADS//\\//}"; rm -Rf msys-* *.nupkg *.msi; )
+            ;;
+        esac
+      displayName: Configure for $(Agent.OS)
+
+    - bash: |
+        set -e
+        echo "Configuring for '$(Agent.OS),${VCPKG_DEFAULT_TRIPLET}'"
+        test -f "triplets/${VCPKG_DEFAULT_TRIPLET}.cmake" || \
+          test -f "triplets/community/${VCPKG_DEFAULT_TRIPLET}.cmake" || \
+            cp "ci/${VCPKG_DEFAULT_TRIPLET}.cmake" triplets/community/
+        case "$(Agent.OS),${VCPKG_DEFAULT_TRIPLET}" in
+        *android*)
+            echo "ANDROID_NDK_HOME=${ANDROID_NDK_HOME}"
+            test -n "${ANDROID_NDK_HOME}"
+            ;;
+        Windows*mingw*)
+            MSYSTEM=MSYS ci/msys2bash.cmd -c \
+              "pacman --noconfirm -S --needed --cachedir ${VCPKG_DOWNLOADS//\\//}  mingw-w64-x86_64-cmake  mingw-w64-x86_64-ninja"
+            ;;
+        esac
+      condition: ne(variables.VCPKG_DEFAULT_TRIPLET, '')
+      displayName: Configure for custom triplet
+
+    - task: Cache@2
+      inputs:
+        path: $(VCPKG_DEFAULT_BINARY_CACHE)
+        key: '"binary_$(image)_${{ parameters.buildType }}_${{ parameters.cacheRevision }}_$(VCPKG_DEFAULT_TRIPLET)" | "${{ parameters.packages }}"'
+        restoreKeys: |
+              "binary_$(image)_${{ parameters.buildType }}_${{ parameters.cacheRevision }}_$(VCPKG_DEFAULT_TRIPLET)"
+      displayName: Prepare cache for binaries
+
+    - ${{ if ne(parameters.buildType, 'release+debug') }}:
+      - bash: |
+          find triplets -type f -name '*.cmake' -exec \
+            sh -c 'echo "set(VCPKG_BUILD_TYPE \"${{ parameters.buildType }}\")" >> "$1"' -- {} ';'
+          grep -qr VCPKG_BUILD_TYPE triplets
+        displayName: Set VCPKG_BUILD_TYPE to ${{ parameters.buildType }}
+
+    - template: vcpkg-install.yml
+      parameters:
+        timeout: ${{ parameters.timeout }}
+        packages: ${{ parameters.packages }}
+
+    - bash: |
+        ls -l
+      workingDirectory: $(VCPKG_DOWNLOADS)
+      displayName: List downloads
+
