@@ -239,6 +239,10 @@ function(vcpkg_configure_make)
         set(_csc_BUILD_TRIPLET ${VCPKG_MAKE_BUILD_TRIPLET}) # Triplet overwrite for crosscompiling
     endif()
 
+    if (NOT VCPKG_TARGET_IS_WINDOWS OR VCPKG_TARGET_IS_MINGW)
+        set(_csc_USE_WRAPPERS FALSE) # "only applies to windows cl and lib"
+    endif()
+
     set(SRC_DIR "${_csc_SOURCE_PATH}/${_csc_PROJECT_SUBPATH}")
 
     set(REQUIRES_AUTOGEN FALSE) # use autogen.sh
