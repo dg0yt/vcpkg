@@ -6,8 +6,8 @@ vcpkg_extract_source_archive_ex(
 )
 
 vcpkg_find_acquire_program(NASM)
-get_filename_component(NASM_EXE_PATH "${NASM}" DIRECTORY)
-vcpkg_add_to_path(PREPEND "${NASM_EXE_PATH}")
+#get_filename_component(NASM_EXE_PATH "${NASM}" DIRECTORY)
+#vcpkg_add_to_path(PREPEND "${NASM_EXE_PATH}")
 
 vcpkg_find_acquire_program(JOM)
 

@@ -69,6 +69,49 @@ function(vcpkg_acquire_msys PATH_TO_ROOT_OUT)
         list(APPEND PACKAGES bash coreutils sed grep gawk diffutils make pkg-config)
     endif()
 
+    if(VCPKG_HOST_IS_WINDOWS)
+        execute_process(
+          COMMAND uname -s
+          OUTPUT_VARIABLE UNAME
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if (UNAME MATCHES "MSYS_NT" OR UNAME MATCHES "MINGW")
+            execute_process(
+              COMMAND cygpath -m /
+              RESULT_VARIABLE CYGPATH_ERROR
+              OUTPUT_VARIABLE PREINSTALLED_MSYS_ROOT
+              OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            if(CYGPATH_ERROR)
+                message(FATAL_ERROR "Running in MSYS, but unable to execute `cygpath -m /`")
+            endif()
+            string(REGEX REPLACE "/$" "" PREINSTALLED_MSYS_ROOT ${PREINSTALLED_MSYS_ROOT})
+            message(STATUS "Using MSYS root at ${PREINSTALLED_MSYS_ROOT}")
+            set(${PATH_TO_ROOT_OUT} ${PREINSTALLED_MSYS_ROOT} PARENT_SCOPE)
+            execute_process(
+              COMMAND cygpath -u "${DOWNLOADS}"
+              RESULT_VARIABLE CYGPATH_ERROR
+              OUTPUT_VARIABLE DOWNLOADS_MSYS
+              OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            if(CYGPATH_ERROR)
+                message(FATAL_ERROR "Running in MSYS, but unable to execute `cygpath`")
+            endif()
+            if(PACKAGES)
+                message(STATUS "Synchronizing MSYS packages")
+                execute_process(
+                  COMMAND pacman -S --needed --noconfirm --cachedir "${DOWNLOADS_MSYS}" ${PACKAGES}
+                  RESULT_VARIABLE PACMAN_ERROR
+                )
+                if(PACMAN_ERROR)
+                    message(FATAL_ERROR "Failed to synchronize MSYS packages")
+                endif()
+            endif()
+            return()
+        endif()
+        message(FATAL_ERROR "WIN32 ${UNAME} : ${VCPKG_HOST_IS_WINDOWS}")
+    endif()
+    
     macro(msys_package_download URL SHA FILENAME)
         set(URLS "${URL}")
         # Mirror list from https://github.com/msys2/MSYS2-packages/blob/master/pacman-mirrors/mirrorlist.msys

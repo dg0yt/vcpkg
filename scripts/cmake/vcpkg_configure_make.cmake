@@ -243,8 +243,10 @@ function(vcpkg_configure_make)
 
     set(REQUIRES_AUTOGEN FALSE) # use autogen.sh
     set(REQUIRES_AUTOCONFIG FALSE) # use autotools and configure.ac
-    if(EXISTS "${SRC_DIR}/configure" AND "${SRC_DIR}/configure.ac") # remove configure; rerun autoconf
-        if(NOT VCPKG_MAINTAINER_SKIP_AUTOCONFIG) # If fixing bugs skipping autoconfig saves a lot of time
+    if(EXISTS "${SRC_DIR}/configure" AND EXISTS "${SRC_DIR}/configure.ac") # remove configure; rerun autoconf
+        if(VCPKG_TARGET_IS_MINGW)
+            # Use GNU build system as is, and don't implicitly activate usage of wrappers.
+        elseif(NOT VCPKG_MAINTAINER_SKIP_AUTOCONFIG) # If fixing bugs skipping autoconfig saves a lot of time
             set(REQUIRES_AUTOCONFIG TRUE)
             file(REMOVE "${SRC_DIR}/configure") # remove possible autodated configure scripts
             set(_csc_AUTOCONFIG ON)
@@ -287,6 +289,9 @@ function(vcpkg_configure_make)
 
     # Pre-processing windows configure requirements
     if (CMAKE_HOST_WIN32)
+        if(VCPKG_TARGET_IS_MINGW)
+            set(_csc_USE_WRAPPERS 0) # USE_WRAPPERS "only applies to windows cl and lib"
+        endif()
         list(APPEND MSYS_REQUIRE_PACKAGES binutils libtool autoconf automake-wrapper automake1.16 m4)
         vcpkg_acquire_msys(MSYS_ROOT PACKAGES ${MSYS_REQUIRE_PACKAGES} ${_csc_ADDITIONAL_MSYS_PACKAGES})
         if (_csc_AUTOCONFIG AND NOT _csc_BUILD_TRIPLET OR _csc_DETERMINE_BUILD_TRIPLET)
@@ -313,9 +318,14 @@ function(vcpkg_configure_make)
             set(APPEND_ENV ";${MSYS_ROOT}/usr/share/automake-1.16")
             string(APPEND APPEND_ENV ";${SCRIPTS}/buildsystems/make_wrapper") # Other required wrappers are also located there
         endif()
-        # This inserts msys before system32 (which masks sort.exe and find.exe) but after MSVC (which avoids masking link.exe)
-        string(REPLACE ";$ENV{SystemRoot}\\System32;" "${APPEND_ENV};${MSYS_ROOT}/usr/bin;$ENV{SystemRoot}\\System32;" NEWPATH "$ENV{PATH}")
-        string(REPLACE ";$ENV{SystemRoot}\\system32;" "${APPEND_ENV};${MSYS_ROOT}/usr/bin;$ENV{SystemRoot}\\system32;" NEWPATH "$ENV{PATH}")
+        # Don't add ${MSYS_ROOT}/usr/bin when running from MSYS
+        string(REPLACE "\\" "/" PATH_WITH_SLASHES "$ENV{PATH}") 
+        if(NOT ";${PATH_WITH_SLASHES};" MATCHES ";${MSYS_ROOT}/usr/bin;")
+            string(APPEND APPEND_ENV ";${MSYS_ROOT}/usr/bin")
+        endif()
+        # This inserts wrappers and msys before system32 (which masks sort.exe and find.exe) but after MSVC (which avoids masking link.exe)
+        string(REPLACE ";$ENV{SystemRoot}\\System32;" "${APPEND_ENV};$ENV{SystemRoot}\\System32;" NEWPATH "$ENV{PATH}")
+        string(REPLACE ";$ENV{SystemRoot}\\system32;" "${APPEND_ENV};$ENV{SystemRoot}\\system32;" NEWPATH "$ENV{PATH}")
         set(ENV{PATH} "${NEWPATH}")
         set(BASH "${MSYS_ROOT}/usr/bin/bash.exe")
 

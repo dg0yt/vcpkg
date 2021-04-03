@@ -168,7 +168,7 @@ function(vcpkg_configure_cmake)
     if(GENERATOR STREQUAL "Ninja" AND NOT DEFINED ENV{VCPKG_FORCE_SYSTEM_BINARIES})
         vcpkg_find_acquire_program(NINJA)
         get_filename_component(NINJA_PATH ${NINJA} DIRECTORY)
-        vcpkg_add_to_path("${NINJA_PATH}")
+        #vcpkg_add_to_path("${NINJA_PATH}")
         list(APPEND arg_OPTIONS "-DCMAKE_MAKE_PROGRAM=${NINJA}")
     endif()
 
