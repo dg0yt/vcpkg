@@ -1,0 +1,63 @@
+# Copyright 2021 Kai Pastor <dg0yt@darc.de>
+
+parameters:
+- name: install_options
+  displayName: Options to vcpkg install
+  type: string
+  default:
+- name: timeout
+  displayName: Build task timeout in minutes
+  type: number
+  default: 60
+
+steps:
+  - bash: |
+      set -e
+      set -o pipefail
+      if [[ ! " ${OPTIONS} ${PACKAGES}" =~ ^(  *([a-zA-Z0-9][-._a-zA-Z0-9]*|--debug|--only-downloads|--keep-going))*$ ]] ; then
+          echo "##vso[task.logissue type=error]Invalid parameter '${PACKAGES}'"
+          exit 1
+      fi
+      if [ -n "${VCPKG_DEFAULT_BINARY_CACHE}" ] ; then
+          mkdir -p "${VCPKG_DEFAULT_BINARY_CACHE//\\//}"
+      fi
+      PERL=perl
+      SED=sed
+      SED_OPTS=-u
+      VCPKG=vcpkg
+      case "$(Agent.OS),${VCPKG_DEFAULT_TRIPLET}" in
+      Darwin*)
+          SED_OPTS=
+          ;;
+      Windows*,x64-mingw-*)
+          # Azure pipelines default to git bash. Our compiler is in MSYS2.
+          # Mixing different MSYS/Cygwin environment is considered harmful.
+          # But this will happen with vcpkg unless we clean the path.
+          echo "original PATH=$PATH"
+          PERL=$(cygpath -u $(which perl))
+          SED=$(cygpath -u $(which sed))
+          VCPKG=$(cygpath -u $(which vcpkg))
+          IFS=":"
+          NEW_PATH="/c/msys64/mingw64/bin"
+          for I in $PATH; do
+              if test -f "$I/bash.exe" || test -f "$I/sh.exe" || \
+                 test -f "$I/msys-2.0.dll" || test -f "$I/cygwin1.dll"; then
+                  continue
+              fi
+              UNIX_PATH=$(cygpath -u "$I")
+              echo ":$NEW_PATH:" | grep -q ":$UNIX_PATH:" || NEW_PATH="$NEW_PATH:$UNIX_PATH"
+          done
+          unset IFS
+          export PATH="$NEW_PATH"
+          echo "clean PATH=$PATH"
+          set -x
+          ;;
+      esac
+      "$VCPKG" install ${OPTIONS} ${PACKAGES} \
+        | "$SED" $SED_OPTS -f ci/format-for-azure-pipelines.sed \
+        | "$PERL" ci/filter-progress.pl
+    env:
+      OPTIONS: ${{ parameters.install_options }}
+    timeoutInMinutes: ${{ parameters.timeout }}
+    displayName: vcpkg install ${{ parameters.install_options }}
+
