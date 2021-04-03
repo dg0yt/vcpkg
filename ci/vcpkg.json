@@ -1,0 +1,7 @@
+{
+  "name": "ci",
+  "version-string": "2021.04.05",
+  "port-version": 0,
+  "description": "Personal VCPKG CI initialization",
+  "homepage": "https://github.com/dg0yt/vcpkg"
+}

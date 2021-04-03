@@ -1,0 +1,48 @@
+# Copyright 2021 Kai Pastor <dg0yt@darc.de>
+
+parameters:
+- name: packages
+  displayName: Packages to be built
+  type: string
+
+steps:
+  - bash: |
+      set -e
+      set -o pipefail
+      FIND_PACKAGES=`cat << END_FIND_PACKAGES
+        /^versions\/.-\/[^\/]*[.]json$/ {
+          s/^versions\/.-\/\(..*\)[.]json$/\1/;
+          n;
+        };
+        /^ports\/.*\// {
+          s/^ports\/\([^/]*\)\/.*/\1/;
+          n;
+        };
+        d
+      END_FIND_PACKAGES
+      `
+      FOUND=`
+        cd "$BUILD_SOURCESDIRECTORY" |
+        git log --name-only -n 2 |
+        sed -e "$FIND_PACKAGES" |
+        sort -u |
+        head -n 3 |
+        while read NAME; do
+            echo -n " $NAME"
+        done
+      `
+      if test "${BUILD_REASON}" != "PullRequest"; then
+          echo "Selecting port 'ci'"
+          PACKAGES="${PACKAGES%auto} ci"
+      elif test -n "$FOUND" -a " ${PACKAGES##* }" = " auto" ; then
+          echo "Selecting changed ports (max. 3): $FOUND"
+          PACKAGES="${PACKAGES%auto} $FOUND"
+      else
+          echo "No changed ports in last commit. Building port 'ci'"
+          PACKAGES="${PACKAGES%auto} ci"
+      fi
+      echo "##vso[task.setvariable variable=PACKAGES]${PACKAGES}"
+    env:
+      PACKAGES: ${{ parameters.packages }}
+    displayName: Determine packages
+
