@@ -286,9 +286,6 @@ function(vcpkg_configure_make)
     endif()
 
     # Pre-processing windows configure requirements
-    if (NOT CMAKE_HOST_WIN32 OR VCPKG_TARGET_IS_MINGW)
-        set(_csc_USE_WRAPPERS FALSE) # "only applies to windows cl and lib"
-    endif()
     if (CMAKE_HOST_WIN32)
         list(APPEND MSYS_REQUIRE_PACKAGES binutils libtool autoconf automake-wrapper automake1.16 m4)
         vcpkg_acquire_msys(MSYS_ROOT PACKAGES ${MSYS_REQUIRE_PACKAGES} ${_csc_ADDITIONAL_MSYS_PACKAGES})
