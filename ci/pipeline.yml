@@ -4,7 +4,7 @@ parameters:
 - name: packages
   displayName: Packages to be build
   type: string
-  default: ci
+  default: gettext
 
 - name: buildType
   displayName: Build type
@@ -135,7 +135,7 @@ stages:
         'macOS':
           image: 'macOS-10.15'
         'Android-arm64':
-          image: 'macOS-10.15'
+          image: 'windows-2019'
           VCPKG_DEFAULT_TRIPLET: arm64-android
     pool:
       vmImage: $(image)
