@@ -765,6 +765,18 @@ function(vcpkg_configure_make)
             set(PATH_BACKUP $ENV{PATH})
             vcpkg_add_to_path("${CURRENT_INSTALLED_DIR}${PATH_SUFFIX_${_buildtype}}/bin")
         endif()
+
+        if(VCPKG_TARGET_IS_WINDOWS)
+            set(env_command "${base_cmd}" -c "${CONFIGURE_ENV} env | sort")
+        else()
+            set(env_command "${base_cmd}" -c "env | sort")
+        endif()
+        vcpkg_execute_required_process(
+            COMMAND ${env_command}
+            WORKING_DIRECTORY "${TAR_DIR}"
+            LOGNAME env-${TARGET_TRIPLET}-${SHORT_NAME_${_buildtype}}
+        )
+
         debug_message("Configure command:'${command}'")
         if (NOT _csc_SKIP_CONFIGURE)
             message(STATUS "Configuring ${TARGET_TRIPLET}-${SHORT_NAME_${_buildtype}}")
