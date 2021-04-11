@@ -345,7 +345,9 @@ function(vcpkg_configure_make)
                 endif()
             endif()
         endforeach()
-        if (_csc_AUTOCONFIG OR _csc_USE_WRAPPERS) # without autotools we assume a custom configure script which correctly handles cl and lib. Otherwise the port needs to set CC|CXX|AR and probably CPP
+        if(VCPKG_TARGET_IS_MINGW)
+            # No wrappers
+        elseif(_csc_AUTOCONFIG OR _csc_USE_WRAPPERS) # without autotools we assume a custom configure script which correctly handles cl and lib. Otherwise the port needs to set CC|CXX|AR and probably CPP
             _vcpkg_append_to_configure_environment(CONFIGURE_ENV CPP "compile ${VCPKG_DETECTED_CMAKE_C_COMPILER} -E")
 
             _vcpkg_append_to_configure_environment(CONFIGURE_ENV CC "compile ${VCPKG_DETECTED_CMAKE_C_COMPILER}")
