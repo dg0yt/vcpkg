@@ -1,0 +1,9 @@
+The package vcpkg-release-triplets created the following triplets:
+
+@TRIPLETS@
+
+This package cannot fully be restored from the cached.
+To properly restore this package after removal, run
+
+    vcpkg install --editable vcpkg-release-triplets
+
