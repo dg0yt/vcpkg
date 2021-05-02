@@ -223,7 +223,9 @@ else()
         SOURCE_PATH ${SOURCE_PATH}
         AUTOCONFIG
         COPY_SOURCE
+        DISABLE_VERBOSE_FLAGS
         OPTIONS
+            --verbose
             ${CONF_OPTS}
             "GEOS_VERSION=3.9.0"
         OPTIONS_RELEASE
