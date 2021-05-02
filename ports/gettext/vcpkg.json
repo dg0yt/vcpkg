@@ -8,8 +8,19 @@
     "libiconv"
   ],
   "features": {
+    "autopoint": {
+      "description": "Build autopoint tool"
+    },
     "tools": {
-      "description": "Build gettext tools"
+      "description": "Build gettext tools",
+      "dependencies": [
+        {
+          "name": "gettext",
+          "features": [
+            "autopoint"
+          ]
+        }
+      ]
     }
   }
 }
