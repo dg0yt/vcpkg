@@ -767,18 +767,15 @@ function(vcpkg_configure_make)
         endif()
 
         if(VCPKG_TARGET_IS_WINDOWS)
-            vcpkg_execute_required_process(
-                COMMAND "${base_cmd}" -c "${CONFIGURE_ENV} env | sort"
-                WORKING_DIRECTORY "${TAR_DIR}"
-                LOGNAME env-${TARGET_TRIPLET}-${SHORT_NAME_${_buildtype}}
-            )
+            set(env_command "${base_cmd}" -c "${CONFIGURE_ENV} env | sort")
         else()
-            vcpkg_execute_required_process(
-                COMMAND sh -c "env | sort"
-                WORKING_DIRECTORY "${TAR_DIR}"
-                LOGNAME env-${TARGET_TRIPLET}-${SHORT_NAME_${_buildtype}}
-            )
+            set(env_command "${base_cmd}" -c "env | sort")
         endif()
+        vcpkg_execute_required_process(
+            COMMAND ${env_command}
+            WORKING_DIRECTORY "${TAR_DIR}"
+            LOGNAME env-${TARGET_TRIPLET}-${SHORT_NAME_${_buildtype}}
+        )
 
         debug_message("Configure command:'${command}'")
         if (NOT _csc_SKIP_CONFIGURE)

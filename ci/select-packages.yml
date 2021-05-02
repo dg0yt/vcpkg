@@ -33,7 +33,7 @@ steps:
       `
       if test "${BUILD_REASON}" != "PullRequest"; then
           echo "Selecting port 'ci'"
-          PACKAGES="${PACKAGES%auto} ci"
+          PACKAGES="${PACKAGES%auto} libiconv"
       elif test -n "$FOUND" -a " ${PACKAGES##* }" = " auto" ; then
           echo "Selecting changed ports (max. 3): $FOUND"
           PACKAGES="${PACKAGES%auto} $FOUND"
