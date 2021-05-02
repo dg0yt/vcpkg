@@ -182,17 +182,7 @@ else()
         LOGNAME touch-${TARGET_TRIPLET}
     )
     
-    if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
-        set(BUILD_DYNAMIC yes)
-        set(BUILD_STATIC no)
-    else()
-        set(BUILD_DYNAMIC no)
-        set(BUILD_STATIC yes)
-    endif()
-
     set(CONF_OPTS
-        --enable-shared=${BUILD_DYNAMIC}
-        --enable-static=${BUILD_STATIC}
         # parameters in the same order as the dependencies in vcpkg.json
         --with-libjson-c=${CURRENT_INSTALLED_DIR}
         --with-geotiff=yes
