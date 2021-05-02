@@ -194,16 +194,16 @@ else()
         --with-expat=yes
         --with-geos=yes
         --with-gif=yes
-        --with-hdf5=yes
-        --with-libjson-c=${CURRENT_INSTALLED_DIR}
-        --with-geotiff=yes
+        --with-hdf5=no          # WIP
+        --with-libjson-c=yes
+        "--with-geotiff=${CURRENT_INSTALLED_DIR}"
         --with-jpeg=yes
         --with-liblzma=yes
         --with-png=yes
         --with-pg=yes
         --with-webp=yes
         --with-xml2=yes
-        --with-netcdf=yes
+        --with-netcdf=no        # WIP
         --with-openjpeg=yes
         --with-proj=yes
         --with-sqlite3=yes
@@ -292,38 +292,53 @@ else()
         )
     endif()
 
+    # proj needs a C++ runtime library
     if(VCPKG_TARGET_IS_OSX)
-        set(DEPENDLIBS "-lc++ -liconv -llber -lldap -framework CoreFoundation -framework Security")
+        set(PROJ_EXTRA_LIBS "-lc++")
     else()
-        set(DEPENDLIBS "-lstdc++")
+        set(PROJ_EXTRA_LIBS "-lstdc++")
     endif()
 
-    list(APPEND OPTIONS_RELEASE
-        "LIBS=-pthread ${DEPENDLIBS} -lssl -lcrypto  -lgeos_c -lgeos -llzma -lszip"
-    )
-    list(APPEND OPTIONS_DEBUG
-        "LIBS=-pthread ${DEPENDLIBS} -lssl -lcrypto -lgeos_cd -lgeosd -llzmad -lszip_debug"
-    )
-
-    if(VCPKG_HOST_IS_WINDOWS)
-        string(REPLACE " " "\\ " OPTIONS_RELEASE "${OPTIONS_RELEASE}")
-        string(REPLACE " " "\\ " OPTIONS_DEBUG "${OPTIONS_DEBUG}")
+    if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+        # vcpkg libtiff-4.pc quirk: add missing modules here, and -lm below
+        x_vcpkg_pkgconfig_get_modules(
+            PREFIX  TIFF
+            MODULES libtiff-4 zlib
+            LIBS
+        )
+        # vcpkg libxml2.0.pc quirk: add missing modules here, and -lm below
+        x_vcpkg_pkgconfig_get_modules(
+            PREFIX  LIBXML2
+            MODULES libxml-2.0 liblzma zlib
+            LIBS
+        )
+    else()
+        set(TIFF_LIBS )
+        set(LIBXML2_LIBS )
     endif()
 
     vcpkg_configure_make(
         SOURCE_PATH ${SOURCE_PATH}
         AUTOCONFIG
         COPY_SOURCE
-        DISABLE_VERBOSE_FLAGS
         OPTIONS
-            --verbose
             ${CONF_OPTS}
-            "GEOS_VERSION=3.9.0"
+            "--with-proj-extra-lib-for-test=${PROJ_EXTRA_LIBS}"
         OPTIONS_RELEASE
             ${OPTIONS_RELEASE}
+            DEBUG_DIR=
+            DEBUG_POSTFIX=
+            "GEOS_LIBS=-L${CURRENT_INSTALLED_DIR}/lib -lgeos_c"
+            "TIFF_LIBS=${TIFF_LIBS_RELEASE} -lm"
+            "LIBXML2_LIBS=${LIBXML2_LIBS_RELEASE} -lm"
         OPTIONS_DEBUG
             --enable-debug
             ${OPTIONS_DEBUG}
+            DEBUG_DIR=/debug
+            DEBUG_POSTFIX=d
+            "GEOS_LIBS=-L${CURRENT_INSTALLED_DIR}/debug/lib -lgeos_cd"
+            "TIFF_LIBS=${TIFF_LIBS_DEBUG} -lm"
+            "LIBXML2_LIBS=${LIBXML2_LIBS_DEBUG} -lm"
     )
 
     vcpkg_install_make(MAKEFILE GNUmakefile)
