@@ -1,7 +1,7 @@
 {
   "name": "curl",
   "version-string": "7.74.0",
-  "port-version": 4,
+  "port-version": 5,
   "description": "A library for transferring data with URLs",
   "homepage": "https://github.com/curl/curl",
   "dependencies": [

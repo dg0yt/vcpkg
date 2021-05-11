@@ -14,6 +14,7 @@ vcpkg_from_github(
         0010_fix_othertests_cmake.patch
         0011_fix_static_build.patch
         0012-fix-dependency-idn2.patch
+        0020-fix-pc-file.patch
 )
 
 string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" CURL_STATICLIB)
@@ -155,7 +156,7 @@ if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/libcurl.pc " -loptimized" "")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/libcurl.pc " -ldebug" "")
 
-    elseif(VCPKG_TARGET_IS_LINUX)
+    elseif(VCPKG_TARGET_IS_LINUX OR VCPKG_TARGET_IS_OSX)
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/libcurl.pc "-lcurl" "-lcurl-d")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/libcurl.pc "${CURRENT_INSTALLED_DIR}/debug/lib/libssl.a" "-lssl")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/libcurl.pc "${CURRENT_INSTALLED_DIR}/debug/lib/libcrypto.a" "-lcrypto")
@@ -189,7 +190,7 @@ if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc " ${CURRENT_INSTALLED_DIR}/debug/lib/pthreadVC3d.lib" "")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc " -loptimized" "")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc " -ldebug" "")
-    elseif(VCPKG_TARGET_IS_LINUX)
+    elseif(VCPKG_TARGET_IS_LINUX OR VCPKG_TARGET_IS_OSX)
         #vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc "-lcurl" "-lcurl")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc "${CURRENT_INSTALLED_DIR}/lib/libssl.a" "-lssl")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc "${CURRENT_INSTALLED_DIR}/lib/libcrypto.a" "-lcrypto")
@@ -201,13 +202,11 @@ if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc "${CURRENT_INSTALLED_DIR}/lib/libcares.a" "-lcares")
         vcpkg_replace_string(${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc "${CURRENT_INSTALLED_DIR}/lib/libz.a" "-lz")
     endif()
-	file(COPY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc DESTINATION ${CURRENT_PACKAGES_DIR}/lib/pkgconfig)
+    file(COPY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/libcurl.pc DESTINATION ${CURRENT_PACKAGES_DIR}/lib/pkgconfig)
 endif()
-if(VCPKG_TARGET_IS_WINDOWS)
-    vcpkg_fixup_pkgconfig()
-elseif(VCPKG_TARGET_IS_LINUX)
-    vcpkg_fixup_pkgconfig(SYSTEM_LIBRARIES pthread dl c)
-elseif(VCPKG_TARGET_IS_ANDROID)
+vcpkg_fixup_pkgconfig()
+
+if(VCPKG_TARGET_IS_ANDROID)
     file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
 endif()
 
