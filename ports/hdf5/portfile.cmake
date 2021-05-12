@@ -123,12 +123,22 @@ if(EXISTS "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/hdf5.pc")
         "-loptimized -l\"\${prefix}/lib/zlib.lib\" -ldebug -l\"\${prefix}/debug/lib/zlibd.lib\""
         "-lzlib"
     )
+    vcpkg_replace_string(
+        "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/hdf5.pc"
+        " -lszip-static"
+        " -lszip"
+    )
 endif()
 if(EXISTS "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/hdf5.pc")
     vcpkg_replace_string(
         "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/hdf5.pc"
         "-loptimized -l\"\${prefix}/lib/zlib.lib\" -ldebug -l\"\${prefix}/lib/zlibd.lib\""
         "-lzlibd"
+    )
+    vcpkg_replace_string(
+        "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/hdf5.pc"
+        " -lszip-static"
+        " -lszip_${debug_suffix}"
     )
 endif()
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
