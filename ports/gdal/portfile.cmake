@@ -6,7 +6,6 @@ vcpkg_fail_port_install(ON_ARCH "arm")
 # NOTE: update the version and checksum for new GDAL release
 set(GDAL_VERSION_STR "3.2.2")
 set(GDAL_VERSION_PKG "322")
-set(GDAL_VERSION_LIB "204")
 set(GDAL_PACKAGE_SUM "ce319e06c78bd076228b3710c127cdbd37c7d6fb23966b47df7287eaffe86a05d4ddcc78494c8bfcaf4db98a71f2ed50a01fb3ca2fe1c10cf0d2e812683c8e53")
 
 vcpkg_download_distfile(ARCHIVE
@@ -15,11 +14,15 @@ vcpkg_download_distfile(ARCHIVE
     SHA512 ${GDAL_PACKAGE_SUM}
 )
 
-set(GDAL_PATCHES 0001-Fix-debug-crt-flags.patch 0002-Fix-build.patch 0005-Fix-configure.patch)
+set(GDAL_PATCHES
+    0001-Fix-debug-crt-flags.patch
+    0002-Fix-build.patch
+    0004-Fix-cfitsio.patch
+    0005-Fix-configure.patch
+)
 if (VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     list(APPEND GDAL_PATCHES 0003-Fix-static-build.patch)
 endif()
-list(APPEND GDAL_PATCHES 0004-Fix-cfitsio.patch)
 
 vcpkg_extract_source_archive_ex(
     ARCHIVE ${ARCHIVE}
@@ -27,7 +30,7 @@ vcpkg_extract_source_archive_ex(
     PATCHES ${GDAL_PATCHES}
 )
 
-if (VCPKG_TARGET_IS_WINDOWS)
+if (VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
   set(NATIVE_DATA_DIR "${CURRENT_PACKAGES_DIR}/share/gdal")
   set(NATIVE_HTML_DIR "${CURRENT_PACKAGES_DIR}/share/gdal/html")
 
@@ -40,7 +43,6 @@ if (VCPKG_TARGET_IS_WINDOWS)
   endif()
 
   list(APPEND NMAKE_OPTIONS
-      # VERSION=${GDAL_VERSION_LIB}
       DATADIR=${NATIVE_DATA_DIR}
       HTMLDIR=${NATIVE_HTML_DIR}
       GEOS_DIR=${GEOS_INCLUDE_DIR}
@@ -179,42 +181,141 @@ if (VCPKG_TARGET_IS_WINDOWS)
 else()
     # See https://github.com/microsoft/vcpkg/issues/16990
     vcpkg_execute_required_process(
-        COMMAND touch config.rpath
+        COMMAND "${CMAKE_COMMAND}" -E touch config.rpath
         WORKING_DIRECTORY ${SOURCE_PATH}
         LOGNAME touch-${TARGET_TRIPLET}
     )
     
-    if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
-        set(BUILD_DYNAMIC yes)
-        set(BUILD_STATIC no)
-    else()
-        set(BUILD_DYNAMIC no)
-        set(BUILD_STATIC yes)
-    endif()
+    set(CONF_OPTS
+        --with-hide-internal-symbols=yes
+        # parameters in the same order as the dependencies in vcpkg.json
+        --with-cfitsio=yes
+        --with-curl=yes
+        --with-expat=yes
+        --with-geos=yes
+        --with-gif=yes
+        --with-hdf5=no          # WIP
+        --with-libjson-c=yes
+        "--with-geotiff=${CURRENT_INSTALLED_DIR}"
+        --with-jpeg=yes
+        --with-liblzma=yes
+        --with-png=yes
+        --with-pg=yes
+        --with-webp=yes
+        --with-xml2=yes
+        --with-netcdf=no        # WIP
+        --with-openjpeg=yes
+        --with-proj=yes
+        --with-sqlite3=yes
+        --with-libtiff=yes
+        --with-libz=yes
+        --with-zstd=yes
+        # bindings
+        --with-perl=no
+        --with-python=no
+        --with-java=no
+    )
 
-    set(CONF_OPTS --enable-shared=${BUILD_DYNAMIC} --enable-static=${BUILD_STATIC})
-    list(APPEND CONF_OPTS --with-proj=yes --with-libjson-c=${CURRENT_INSTALLED_DIR})
-    list(APPEND CONF_OPTS --with-libtiff=yes --with-geotiff=yes)
-    list(APPEND CONF_OPTS --with-pg=yes --with-liblzma=yes)
+    if("system-libraries" IN_LIST FEATURES)
+        set(DISABLE_SYSTEM_LIBRARIES OFF)
+    else()
+        set(DISABLE_SYSTEM_LIBRARIES ON)
+    endif()
 
     if ("libspatialite" IN_LIST FEATURES)
         list(APPEND CONF_OPTS --with-spatialite=yes)
-    else()
+    elseif(DISABLE_SYSTEM_LIBRARIES)
         list(APPEND CONF_OPTS --with-spatialite=no)
     endif()
 
-    if(VCPKG_TARGET_IS_LINUX)
-        set(DEPENDLIBS "-lstdc++")
-    else()
-        set(DEPENDLIBS "-lc++ -liconv -llber -lldap -framework CoreFoundation -framework Security")
+    if ("mysql-libmariadb" IN_LIST FEATURES)
+        list(APPEND CONF_OPTS --with-mysql=yes)
+    elseif(DISABLE_SYSTEM_LIBRARIES)
+        list(APPEND CONF_OPTS --with-mysql=no)
     endif()
 
-    list(APPEND OPTIONS_RELEASE
-        "LIBS=-pthread ${DEPENDLIBS} -lssl -lcrypto  -lgeos_c -lgeos -llzma -lszip"
-    )
-    list(APPEND OPTIONS_DEBUG
-        "LIBS=-pthread ${DEPENDLIBS} -lssl -lcrypto -lgeos_cd -lgeosd -llzmad -lszip_debug"
-    )
+    if(DISABLE_SYSTEM_LIBRARIES)
+        list(APPEND CONF_OPTS
+            # Too much: --disable-all-optional-drivers
+            # alphabetical order
+            --with-armadillo=no
+            --with-charls=no
+            --with-crypto=no
+            --with-cryptopp=no
+            --with-dds=no
+            --with-dods-root=no
+            --with-ecw=no
+            --with-epsilon=no
+            --with-exr=no
+            --with-fgdb=no
+            --with-fme=no
+            --with-freexl=no
+            --with-grass=no
+            --with-gta=no
+            --with-hdf4=no
+            --with-hdfs=no
+            --with-heif=no
+            --with-idb=no
+            --with-ingres=no
+            --with-jasper=no
+            --with-jp2lura=no
+            --with-kakadu=no
+            --with-kea=no
+            --with-libdeflate=no
+            --with-libgrass=no
+            --with-libkml=no
+            --with-mdb=no
+            --with-mrsid=no
+            --with-mrsid_lidar=no
+            --with-msg=no
+            --with-mongocxx=no
+            --with-mongocxxv3=no
+            --with-oci=no
+            --with-odbc=no
+            --with-ogdi=no
+            --with-opencl=no
+            --with-pcidsk=no
+            --with-pcraster=no
+            --with-pcre=no
+            --with-pdfium=no
+            --with-podofo=no
+            --with-poppler=no
+            --with-qhull=no
+            --with-rasdaman=no
+            --with-rasterlite2=no
+            --with-rdb=no
+            --with-sfcgal=no
+            --with-sosi=no
+            --with-teigha=no
+            --with-tiledb=no
+            --with-xerces=no
+        )
+    endif()
+
+    # proj needs a C++ runtime library
+    if(VCPKG_TARGET_IS_OSX)
+        set(PROJ_EXTRA_LIBS "-lc++")
+    else()
+        set(PROJ_EXTRA_LIBS "-lstdc++")
+    endif()
+
+    if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+        # vcpkg libtiff-4.pc quirk: add missing modules here, and -lm below
+        x_vcpkg_pkgconfig_get_modules(
+            PREFIX  TIFF
+            MODULES libtiff-4 zlib
+            LIBS
+        )
+        # vcpkg libxml2.0.pc quirk: add missing modules here, and -lm below
+        x_vcpkg_pkgconfig_get_modules(
+            PREFIX  LIBXML2
+            MODULES libxml-2.0 liblzma zlib
+            LIBS
+        )
+    else()
+        set(TIFF_LIBS )
+        set(LIBXML2_LIBS )
+    endif()
 
     vcpkg_configure_make(
         SOURCE_PATH ${SOURCE_PATH}
@@ -222,12 +323,22 @@ else()
         COPY_SOURCE
         OPTIONS
             ${CONF_OPTS}
-            "GEOS_VERSION=3.9.0"
+            "--with-proj-extra-lib-for-test=${PROJ_EXTRA_LIBS}"
         OPTIONS_RELEASE
             ${OPTIONS_RELEASE}
+            DEBUG_DIR=
+            DEBUG_POSTFIX=
+            "GEOS_LIBS=-L${CURRENT_INSTALLED_DIR}/lib -lgeos_c"
+            "TIFF_LIBS=${TIFF_LIBS_RELEASE} -lm"
+            "LIBXML2_LIBS=${LIBXML2_LIBS_RELEASE} -lm"
         OPTIONS_DEBUG
             --enable-debug
             ${OPTIONS_DEBUG}
+            DEBUG_DIR=/debug
+            DEBUG_POSTFIX=d
+            "GEOS_LIBS=-L${CURRENT_INSTALLED_DIR}/debug/lib -lgeos_cd"
+            "TIFF_LIBS=${TIFF_LIBS_DEBUG} -lm"
+            "LIBXML2_LIBS=${LIBXML2_LIBS_DEBUG} -lm"
     )
 
     vcpkg_install_make(MAKEFILE GNUmakefile)
