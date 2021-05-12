@@ -9,8 +9,9 @@ vcpkg_from_github(
     SHA512 d84df1ea72dc6fa038440a370e1b1ff523364474e7f214b967edc26d3191b2ef4fe1d9273c4a086a5945f1ad1ab6aa8dbcda495898e7967b2b73fd93dd5071e0
     HEAD_REF develop
     PATCHES
-       hdf5_config.patch
-       szip.patch
+        hdf5_config.patch
+        szip.patch
+        mingw-import-libs.patch
 )
 
 if ("parallel" IN_LIST FEATURES AND "cpp" IN_LIST FEATURES)
