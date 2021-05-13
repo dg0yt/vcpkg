@@ -194,7 +194,7 @@ else()
         --with-expat=yes
         --with-geos=yes
         --with-gif=yes
-        --with-hdf5=no          # WIP
+        --with-hdf5=yes
         --with-libjson-c=yes
         "--with-geotiff=${CURRENT_INSTALLED_DIR}"
         --with-jpeg=yes
