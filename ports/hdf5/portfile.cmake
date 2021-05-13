@@ -9,8 +9,9 @@ vcpkg_from_github(
     SHA512 d84df1ea72dc6fa038440a370e1b1ff523364474e7f214b967edc26d3191b2ef4fe1d9273c4a086a5945f1ad1ab6aa8dbcda495898e7967b2b73fd93dd5071e0
     HEAD_REF develop
     PATCHES
-       hdf5_config.patch
-       szip.patch
+        hdf5_config.patch
+        szip.patch
+        mingw-import-libs.patch
 )
 
 if ("parallel" IN_LIST FEATURES AND "cpp" IN_LIST FEATURES)
@@ -45,8 +46,6 @@ if(NOT VCPKG_LIBRARY_LINKAGE STREQUAL "static")
                     -DONLY_SHARED_LIBS=ON)
 endif()
 
-find_library(SZIP_RELEASE NAMES libsz libszip szip sz PATHS "${CURRENT_INSTALLED_DIR}/lib" NO_DEFAULT_PATH)
-find_library(SZIP_DEBUG NAMES libsz libszip szip sz libsz_D libszip_D szip_D sz_D szip_debug PATHS "${CURRENT_INSTALLED_DIR}/debug/lib" NO_DEFAULT_PATH)
 
 vcpkg_configure_cmake(
     SOURCE_PATH ${SOURCE_PATH}
@@ -125,12 +124,32 @@ if(EXISTS "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/hdf5.pc")
         "-loptimized -l\"\${prefix}/lib/zlib.lib\" -ldebug -l\"\${prefix}/debug/lib/zlibd.lib\""
         "-lzlib"
     )
+    vcpkg_replace_string(
+        "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/hdf5.pc"
+        "-loptimized -l${CURRENT_INSTALLED_DIR}/lib/libzlib.a -ldebug -l${CURRENT_INSTALLED_DIR}/lib/libzlibd.a"
+        "-lzlib"
+    )
+    vcpkg_replace_string(
+        "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/hdf5.pc"
+        " -lszip-static"
+        " -lszip"
+    )
 endif()
 if(EXISTS "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/hdf5.pc")
     vcpkg_replace_string(
         "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/hdf5.pc"
         "-loptimized -l\"\${prefix}/lib/zlib.lib\" -ldebug -l\"\${prefix}/lib/zlibd.lib\""
         "-lzlibd"
+    )
+    vcpkg_replace_string(
+        "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/hdf5.pc"
+        "-loptimized -l${CURRENT_INSTALLED_DIR}/lib/libzlib.a -ldebug -l${CURRENT_INSTALLED_DIR}/lib/libzlibd.a"
+        "-lzlibd"
+    )
+    vcpkg_replace_string(
+        "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/hdf5.pc"
+        " -lszip-static"
+        " -lszip_${debug_suffix}"
     )
 endif()
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
