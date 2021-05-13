@@ -209,6 +209,11 @@ stages:
 
     - bash: |
         if [ -n "${LAST_PACKAGE}" ] ; then
+            echo '*** Creating file list for last package:'
+            find "buildtrees/${LAST_PACKAGE}" -maxdepth 1 -name '*.vcpkg_abi_info.txt' |
+              sed 's,^buildtrees/\|.vcpkg_abi_info.txt$,,g;s,/,_,' |
+              while read I; do
+                ls -lR "packages/$I" > "buildtrees/${LAST_PACKAGE}/files-$I.log"; done
             echo '*** Logs for last package:'
             pushd "${PWD}/buildtrees/${LAST_PACKAGE}" > /dev/null
             for I in *.txt \
