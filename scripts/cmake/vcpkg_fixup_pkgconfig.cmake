@@ -150,6 +150,9 @@ function(vcpkg_fixup_pkgconfig)
             string(REGEX REPLACE " -L(\\\${[^}]*}[^ \n\t]*)" " -L\"\\1\"" _contents "${_contents}")
             string(REGEX REPLACE " -I(\\\${[^}]*}[^ \n\t]*)" " -I\"\\1\"" _contents "${_contents}")
             string(REGEX REPLACE " -l(\\\${[^}]*}[^ \n\t]*)" " -l\"\\1\"" _contents "${_contents}")
+            # -l expects a 'namespec', possibly ":filename", but not a path.
+            string(REGEX REPLACE " -l\"([^\"]+)/([^\"/]+)\"" " -L\"\\1\" -l:\\2" _contents "${_contents}")
+
             # This section fuses XYZ.private and XYZ according to VCPKG_LIBRARY_LINKAGE
             #
             # Pkgconfig searches Requires.private transitively for Cflags in the dynamic case,
