@@ -1,0 +1,261 @@
+# Copyright 2021 Kai Pastor <dg0yt@darc.de>
+
+parameters:
+- name: packages
+  displayName: Ports to be built
+  type: string
+  default: auto
+
+- name: buildType
+  displayName: Build type
+  type: string
+  default: release+debug
+  values:
+  - release+debug
+  - release
+
+- name: linkage
+  displayName: Linkage type
+  type: string
+  default: static
+  values:
+  - static
+  - dynamic
+
+- name: timeout
+  displayName: Build task timeout in minutes
+  type: number
+  default: 120
+
+- name: cacheRevision
+  displayName: Cache revision number
+  type: string
+  default: 2021-05-14
+
+- name: reuseDownloads
+  displayName: Reuse cached source downloads
+  type: boolean
+  default: true
+
+- name: keepDownloads
+  displayName: Keep source downloads
+  type: boolean
+  default: false
+
+
+resources:
+  pipelines:
+  - pipeline: artifacts
+    source: dg0yt.vcpkg
+    tags:
+    - cache
+
+
+variables:
+  VCPKG_DOWNLOADS: $(Build.StagingDirectory)/downloads
+  VCPKG_DEFAULT_BINARY_CACHE: $(Build.StagingDirectory)/binary
+  VCPKG_OVERLAY_PORTS: $(Build.SourcesDirectory)/ci
+  VCPKG_OVERLAY_TRIPLETS: $(Build.SourcesDirectory)/triplets/overlay
+
+
+stages:
+- stage: Download
+  jobs:
+  - job: Download
+    pool:
+      vmImage: windows-2019
+    steps:
+    - template: select-packages.yml
+      parameters:
+        packages: ${{ parameters.packages }}
+
+    - task: Cache@2
+      inputs:
+        path: $(VCPKG_DOWNLOADS)
+        key: '"sources" | "$(PACKAGES)" | "${{ parameters.cacheRevision }}"'
+        restoreKeys: |
+              "sources" | "ci"
+      displayName: Cache downloads
+
+    - ${{ if eq(parameters.reuseDownloads, true) }}:
+      - download: artifacts
+        artifact: sources
+        continueOnError: true
+        displayName: Download source artifacts
+      - bash: |
+          mkdir -p "${VCPKG_DOWNLOADS//\\//}"
+          for I in artifacts/sources/*; do
+              if test -f "$I"; then
+                  echo "${I##*/}"
+                  mv "$I" "${VCPKG_DOWNLOADS//\\//}/"
+              fi
+          done
+        displayName: Merge artifacts into cache
+
+    - template: vcpkg-install.yml
+      parameters:
+        timeout: ${{ parameters.timeout }}
+        install_options: --only-downloads --keep-going
+
+    - bash: |
+        for I in *; do
+            if test -d "$I"; then rm -Rf "$I"; fi
+        done
+        ls -l
+        # Unrelated to downloads, but doesn't need separate step
+        echo "##vso[build.updatebuildnumber]"`sed -e 's/[^-a-zA-Z0-9.]/_/g;s/^_*\([a-zA-Z0-9]\)/\1/' <<END_BUILDNUMBER
+        $PACKAGES
+        END_BUILDNUMBER
+        `_$(Build.BuildNumber)
+      workingDirectory: $(VCPKG_DOWNLOADS)
+      displayName: Revise downloads
+
+    - ${{ if eq(parameters.keepDownloads, true) }}:
+      - bash: |
+          rm -Rf msys-* *.nupkg *.msi
+          ls -l
+        workingDirectory: $(VCPKG_DOWNLOADS)
+        displayName: Reduce downloads to sources
+      - publish: $(VCPKG_DOWNLOADS)
+        artifact: sources
+        displayName: Publish source artifacts
+
+- stage: Build
+  jobs:
+  - job: Build
+    strategy:
+      matrix:
+        'MSVC':
+          image: 'windows-2019'
+          VCPKG_DEFAULT_TRIPLET:      ${{ replace(format('x64-windows-{0}', parameters.linkage), '-dynamic', '') }}
+          VCPKG_DEFAULT_HOST_TRIPLET: ${{ replace(format('x64-windows-{0}', parameters.linkage), '-dynamic', '') }}
+        'MINGW64':
+          image: 'windows-2019'
+          VCPKG_DEFAULT_TRIPLET:      ${{ format('x64-mingw-{0}', parameters.linkage) }}
+          VCPKG_DEFAULT_HOST_TRIPLET: ${{ format('x64-mingw-{0}', parameters.linkage) }}
+        'Linux':
+          image: 'ubuntu-18.04'
+          VCPKG_DEFAULT_TRIPLET:      ${{ replace(format('x64-linux-{0}', parameters.linkage), '-static', '') }}
+          VCPKG_DEFAULT_HOST_TRIPLET: ${{ replace(format('x64-linux-{0}', parameters.linkage), '-static', '') }}
+        'macOS':
+          image: 'macOS-10.15'
+          VCPKG_DEFAULT_TRIPLET:      ${{ replace(format('x64-osx-{0}', parameters.linkage), '-static', '') }}
+          VCPKG_DEFAULT_HOST_TRIPLET: ${{ replace(format('x64-osx-{0}', parameters.linkage), '-static', '') }}
+        #'Android-arm64':
+        #  image: 'windows-2019'
+        #  VCPKG_DEFAULT_TRIPLET: arm64-android
+    pool:
+      vmImage: $(image)
+
+    steps:
+    - template: select-packages.yml
+      parameters:
+        packages: ${{ parameters.packages }}
+
+    - task: Cache@2
+      inputs:
+        path: $(VCPKG_DOWNLOADS)
+        key: '"downloads_$(image)_${{ parameters.cacheRevision }}" | "$(VCPKG_DEFAULT_TRIPLET)" | "$(PACKAGES)"'
+        restoreKeys: |
+              "sources" | "$(PACKAGES)"
+              "downloads_$(image)_${{ parameters.cacheRevision }}" | "$(VCPKG_DEFAULT_TRIPLET)"
+              "downloads_$(image)_${{ parameters.cacheRevision }}"
+      displayName: Prepare cache for downloads
+
+    - bash: |
+        set -e
+        clean_windows_artifacts() {
+            mkdir -p "${VCPKG_DOWNLOADS//\\//}"
+            ( cd "${VCPKG_DOWNLOADS//\\//}"; rm -Rf msys-* *.nupkg *.msi; )
+        }
+        case "$(Agent.OS)" in
+        Darwin*)
+            clean_windows_artifacts
+            brew install autoconf automake gettext gtk-doc
+            ;;
+        Linux*)
+            clean_windows_artifacts
+            sudo apt-get install autopoint gperf nasm
+            ;;
+        Windows*)
+            ;;
+        *)
+            clean_windows_artifacts
+            ;;
+        esac
+      displayName: Configure for $(Agent.OS)
+
+    - bash: |
+        set -e
+        echo "Configuring for '$(Agent.OS),${VCPKG_DEFAULT_TRIPLET}'"
+        case "$(Agent.OS),${VCPKG_DEFAULT_TRIPLET}" in
+        *android*)
+            echo "ANDROID_NDK_HOME=${ANDROID_NDK_HOME}"
+            test -n "${ANDROID_NDK_HOME}"
+            ;;
+        esac
+      condition: ne(variables.VCPKG_DEFAULT_TRIPLET, '')
+      displayName: Configure for agent and triplet
+
+    - task: Cache@2
+      inputs:
+        path: $(VCPKG_DEFAULT_BINARY_CACHE)
+        key: '"binary_$(image)_${{ parameters.buildType }}_${{ parameters.cacheRevision }}_$(VCPKG_DEFAULT_TRIPLET)" | "$(PACKAGES)"'
+        restoreKeys: |
+              "binary_$(image)_${{ parameters.buildType }}_${{ parameters.cacheRevision }}_$(VCPKG_DEFAULT_TRIPLET)"
+      displayName: Prepare cache for binaries
+
+    - ${{ if ne(parameters.buildType, 'release+debug') }}:
+      - bash: |
+          find triplets -type f -name '*.cmake' -exec \
+            sh -c 'echo "set(VCPKG_BUILD_TYPE \"${{ parameters.buildType }}\")" >> "$1"' -- {} ';'
+        displayName: Set VCPKG_BUILD_TYPE to ${{ parameters.buildType }}
+
+    - template: vcpkg-install.yml
+      parameters:
+        timeout: ${{ parameters.timeout }}
+
+    - bash: |
+        if [ -n "${LAST_PACKAGE}" ] ; then
+            echo '*** Creating file list for last package:'
+            find "buildtrees/${LAST_PACKAGE}" -maxdepth 1 -name '*.vcpkg_abi_info.txt' |
+              sed 's,^buildtrees/,,;s,.vcpkg_abi_info.txt$,,;s,/,_,' |
+              while read I; do
+                ls -lR "packages/$I" > "buildtrees/${LAST_PACKAGE}/files-$I.log"; done
+            echo '*** Logs for last package:'
+            pushd "${PWD}/buildtrees/${LAST_PACKAGE}" > /dev/null
+            for I in *.txt \
+                     *.log \
+                     *-rel/*.log \
+                     *-rel/CMakeFiles/*.log \
+                     *-dbg/*.log \
+                     *-dbg/CMakeFiles/*.log \
+            ; do
+                if test -s "${I}"; then
+                    J=`echo "${I//\//,}" | sed -e "/^${LAST_PACKAGE}/ ! s/^/${LAST_PACKAGE},/"`
+                    mv "${I}" "${J}"
+                    echo "##vso[task.uploadfile]${PWD}/${J}"
+                    echo "${J}"
+                fi
+            done | sed -e 's,uploadfile]/\([a-zA-Z]\)/,uploadfile]\1:/,'
+            popd
+            echo '*** Incoming pkgconfig configuration for last package:'
+            pushd "${PWD}/installed" > /dev/null
+            for I in *-*/lib/pkgconfig/*.pc \
+                     *-*/debug/lib/pkgconfig/*.pc \
+                     *-*/share/pkgconfig/*.pc \
+            ; do
+                if test -s "${I}"; then
+                    J=`echo "${I//\//,}" | sed -e "/^${LAST_PACKAGE}/ ! s/^/${LAST_PACKAGE},/"`
+                    cp "${I}" "${J}"
+                    echo "##vso[task.uploadfile]${PWD}/${J}"
+                    echo "${J}"
+                fi
+            done | sed -e 's,uploadfile]/\([a-zA-Z]\)/,uploadfile]\1:/,'
+            popd
+        fi
+        echo '*** Cached downloads'
+        ls -l ${VCPKG_DOWNLOADS//\\//}
+      condition: always()
+      displayName: Postprocess build results
+
