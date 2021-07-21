@@ -16,6 +16,7 @@ set(GDAL_PATCHES
     0002-Fix-build.patch
     0004-Fix-cfitsio.patch
     0005-Fix-configure.patch
+    0007-Fix-absl-string_view.patch
 )
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     list(APPEND GDAL_PATCHES 0003-Fix-static-build.patch)
