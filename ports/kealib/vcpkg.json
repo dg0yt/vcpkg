@@ -14,5 +14,16 @@
       "name": "vcpkg-cmake",
       "host": true
     }
-  ]
+  ],
+  "features": {
+    "gdal": {
+      "description": "Build the GDAL driver",
+      "dependencies": [
+        {
+          "name": "gdal",
+          "default-features": false
+        }
+      ]
+    }
+  }
 }

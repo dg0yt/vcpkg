@@ -7,10 +7,15 @@ vcpkg_from_github(
     PATCHES hdf5_include.patch
 )
 
+vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
+    FEATURES
+        gdal    LIBKEA_WITH_GDAL
+)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
-    OPTIONS
-        -DLIBKEA_WITH_GDAL=OFF
+    OPTIONS 
+        ${FEATURE_OPTIONS}
 )
 
 vcpkg_cmake_install()
