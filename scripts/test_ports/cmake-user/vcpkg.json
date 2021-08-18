@@ -49,6 +49,10 @@
           "name": "liblzma"
         },
         {
+          "$package": "LibXml2",
+          "name": "libxml2"
+        },
+        {
           "$package": "ZLIB",
           "name": "zlib"
         }
