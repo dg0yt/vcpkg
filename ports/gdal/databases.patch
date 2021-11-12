@@ -1,0 +1,30 @@
+diff --git a/gdal/configure.ac b/gdal/configure.ac
+index e4d985e..88bbc43 100644
+--- a/gdal/configure.ac
++++ b/gdal/configure.ac
+@@ -1591,6 +1591,11 @@ HAVE_SPATIALITE=no
+ if test -z "$with_spatialite" -o "$with_spatialite" = "no"; then
+     AC_MSG_RESULT(disabled)
+ elif test "$with_spatialite" = "yes"; then
++    PKG_CHECK_MODULES(SPATIALITE,spatialite,HAVE_SPATIALITE=yes,AC_MSG_ERROR([vcpkg spatialite not found]))
++    STRIP_SYSTEM_LIBRARY_PATHS("${SPATIALITE_LIBS}")
++    SPATIALITE_LIBS="$STRIPPED_LIBRARY_NAME"
++    LIBS="${SPATIALITE_LIBS} ${LIBS}"
++elif false; then
+     AC_CHECK_HEADERS(sqlite3.h)
+     if test "$ac_cv_header_sqlite3_h" = "yes"; then
+         AC_MSG_CHECKING([for spatialite.h in /usr/include or /usr/local/include])
+@@ -4036,7 +4041,12 @@ fi
+ 
+ AC_MSG_CHECKING([for MySQL])
+ 
+-if test "$MYSQL_CONFIG" = "no" ; then
++if test "$with_mysql" = "yes"; then
++    PKG_CHECK_MODULES(MARIADB,mariadb,HAVE_MYSQL=yes,AC_MSG_ERROR([vcpkg mariadb not found]))
++    MYSQL_INC="$MARIADB_CFLAGS"
++    STRIP_SYSTEM_LIBRARY_PATHS("${MARIADB_LIBS}")
++    MYSQL_LIB="$STRIPPED_LIBRARY_NAME"
++elif true ; then
+ 
+   HAVE_MYSQL=no
+   MYSQL_LIB=
