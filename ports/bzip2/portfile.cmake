@@ -13,35 +13,30 @@ vcpkg_extract_source_archive_ex(
 
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt" DESTINATION "${SOURCE_PATH}")
 
-vcpkg_configure_cmake(
+vcpkg_cmake_configure(
     SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
     OPTIONS_DEBUG
         -DBZIP2_SKIP_HEADERS=ON
         -DBZIP2_SKIP_TOOLS=ON
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 vcpkg_copy_pdbs()
 
 file(READ "${CURRENT_PACKAGES_DIR}/include/bzlib.h" BZLIB_H)
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-    string(REPLACE "defined(BZ_IMPORT)" "0" BZLIB_H "${BZLIB_H}")
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/bzlib.h" "defined(BZ_IMPORT)" "0")
 else()
-    string(REPLACE "defined(BZ_IMPORT)" "1" BZLIB_H "${BZLIB_H}")
-endif()
-file(WRITE "${CURRENT_PACKAGES_DIR}/include/bzlib.h" "${BZLIB_H}")
-
-if (NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
-  set(BZIP2_PREFIX "${CURRENT_INSTALLED_DIR}")
-  set(bzname bz2)
-  configure_file("${CMAKE_CURRENT_LIST_DIR}/bzip2.pc.in" "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/bzip2.pc" @ONLY)
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/bzlib.h" "defined(BZ_IMPORT)" "1")
 endif()
 
-if (NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
-  set(BZIP2_PREFIX "${CURRENT_INSTALLED_DIR}/debug")
-  set(bzname bz2d)
-  configure_file("${CMAKE_CURRENT_LIST_DIR}/bzip2.pc.in" "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/bzip2.pc" @ONLY)
+set(BZIP2_PREFIX "${CURRENT_INSTALLED_DIR}")
+set(bzname bz2)
+configure_file("${CMAKE_CURRENT_LIST_DIR}/bzip2.pc.in" "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/bzip2.pc" @ONLY)
+if(NOT DEFINED VCPKG_BUILD_TYPE)
+    set(BZIP2_PREFIX "${CURRENT_INSTALLED_DIR}/debug")
+    set(bzname bz2d)
+    configure_file("${CMAKE_CURRENT_LIST_DIR}/bzip2.pc.in" "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/bzip2.pc" @ONLY)
 endif()
 
 vcpkg_fixup_pkgconfig()
