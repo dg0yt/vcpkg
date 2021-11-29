@@ -41,6 +41,10 @@
           "name": "bzip2"
         },
         {
+          "$package": "CURL",
+          "name": "curl"
+        },
+        {
           "$package": "EXPAT",
           "name": "expat"
         },
@@ -72,6 +76,10 @@
           "$package": "Curses",
           "name": "ncurses",
           "platform": "!windows & !uwp"
+        },
+        {
+          "$package": "OpenSSL",
+          "name": "openssl"
         },
         {
           "$package": "TIFF",
