@@ -1,42 +1,35 @@
-set(OPENSSL_ROOT_DIR_BAK ${OPENSSL_ROOT_DIR})
+set(OPENSSL_ROOT_DIR_BAK "${OPENSSL_ROOT_DIR}")
 get_filename_component(OPENSSL_ROOT_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 get_filename_component(OPENSSL_ROOT_DIR "${OPENSSL_ROOT_DIR}" PATH)
 get_filename_component(OPENSSL_ROOT_DIR "${OPENSSL_ROOT_DIR}" PATH)
 
-if(CMAKE_HOST_WIN32)
-    file(TO_CMAKE_PATH "$ENV{PROGRAMFILES}" Z_VCPKG_PROGRAMFILES)
-    set(Z_VCPKG_PROGRAMFILESX86_NAME "PROGRAMFILES(x86)")
-    file(TO_CMAKE_PATH "$ENV{${Z_VCPKG_PROGRAMFILESX86_NAME}}" Z_VCPKG_PROGRAMFILESX86)
-    set(CMAKE_SYSTEM_IGNORE_PATH
-        "${Z_VCPKG_PROGRAMFILES}/OpenSSL"
-        "${Z_VCPKG_PROGRAMFILES}/OpenSSL-Win32"
-        "${Z_VCPKG_PROGRAMFILES}/OpenSSL-Win64"
-        "${Z_VCPKG_PROGRAMFILES}/OpenSSL-Win32/lib/VC"
-        "${Z_VCPKG_PROGRAMFILES}/OpenSSL-Win64/lib/VC"
-        "${Z_VCPKG_PROGRAMFILES}/OpenSSL-Win32/lib/VC/static"
-        "${Z_VCPKG_PROGRAMFILES}/OpenSSL-Win64/lib/VC/static"
-        "${Z_VCPKG_PROGRAMFILESX86}/OpenSSL"
-        "${Z_VCPKG_PROGRAMFILESX86}/OpenSSL-Win32"
-        "${Z_VCPKG_PROGRAMFILESX86}/OpenSSL-Win64"
-        "${Z_VCPKG_PROGRAMFILESX86}/OpenSSL-Win32/lib/VC"
-        "${Z_VCPKG_PROGRAMFILESX86}/OpenSSL-Win64/lib/VC"
-        "${Z_VCPKG_PROGRAMFILESX86}/OpenSSL-Win32/lib/VC/static"
-        "${Z_VCPKG_PROGRAMFILESX86}/OpenSSL-Win64/lib/VC/static"
-        "C:/OpenSSL/"
-        "C:/OpenSSL-Win32/"
-        "C:/OpenSSL-Win64/"
-        "C:/OpenSSL-Win32/lib/VC"
-        "C:/OpenSSL-Win64/lib/VC"
-        "C:/OpenSSL-Win32/lib/VC/static"
-        "C:/OpenSSL-Win64/lib/VC/static"
-    )
+find_path(OPENSSL_INCLUDE_DIR NAMES openssl/ssl.h PATHS "${OPENSSL_ROOT_DIR}/include" NO_DEFAULT_PATH)
+if(WIN32 AND NOT CYGWIN)
+    if(MSVC)
+        find_library(LIB_EAY_RELEASE NAMES libcrypto crypto PATHS "${OPENSSL_ROOT_DIR}/lib" NO_DEFAULT_PATH)
+        find_library(LIB_EAY_DEBUG   NAMES libcrypto crypto PATHS "${OPENSSL_ROOT_DIR}/debug/lib" NO_DEFAULT_PATH)
+        find_library(SSL_EAY_RELEASE NAMES libssl ssl PATHS "${OPENSSL_ROOT_DIR}/lib" NO_DEFAULT_PATH)
+        find_library(SSL_EAY_DEBUG   NAMES libssl ssl PATHS "${OPENSSL_ROOT_DIR}/debug/lib" NO_DEFAULT_PATH)
+    elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        find_library(LIB_EAY NAMES crypto PATHS "${OPENSSL_ROOT_DIR}/debug/lib" NO_DEFAULT_PATH)
+        find_library(SSL_EAY NAMES ssl PATHS "${OPENSSL_ROOT_DIR}/debug/lib" NO_DEFAULT_PATH)
+    else()
+        find_library(LIB_EAY NAMES crypto PATHS "${OPENSSL_ROOT_DIR}/lib" NO_DEFAULT_PATH)
+        find_library(SSL_EAY NAMES ssl PATHS "${OPENSSL_ROOT_DIR}/lib" NO_DEFAULT_PATH)
+    endif()
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    find_library(OPENSSL_CRYPTO_LIBRARY NAMES crypto PATHS "${OPENSSL_ROOT_DIR}/debug/lib" NO_DEFAULT_PATH)
+    find_library(OPENSSL_SSL_LIBRARY NAMES ssl PATHS "${OPENSSL_ROOT_DIR}/debug/lib" NO_DEFAULT_PATH)
+else()
+    find_library(OPENSSL_CRYPTO_LIBRARY NAMES crypto PATHS "${OPENSSL_ROOT_DIR}/lib" NO_DEFAULT_PATH)
+    find_library(OPENSSL_SSL_LIBRARY NAMES ssl PATHS "${OPENSSL_ROOT_DIR}/lib" NO_DEFAULT_PATH)
 endif()
 
 _find_package(${ARGS})
 
-set(OPENSSL_ROOT_DIR ${OPENSSL_ROOT_DIR_BAK})
+set(OPENSSL_ROOT_DIR "${OPENSSL_ROOT_DIR_BAK}")
 
-if(OPENSSL_FOUND AND "@VCPKG_LIBRARY_LINKAGE@" STREQUAL "static")
+if(OPENSSL_FOUND AND "static" STREQUAL "static")
     if(WIN32)
         list(APPEND OPENSSL_LIBRARIES crypt32 ws2_32)
         if(TARGET OpenSSL::Crypto)
