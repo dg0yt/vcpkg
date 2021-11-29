@@ -87,6 +87,8 @@ function(test_cmake_project)
     string(REGEX MATCH "[1-9][0-9]*\\.[0-9]*\\.[0-9]*" cmake_version "${cmake_version_output}")
     if(cmake_version_result OR NOT cmake_version)
         message(FATAL_ERROR "Unable to determine version for '${arg_CMAKE_COMMAND}'.")
+    elseif(cmake_version VERSION_LESS 3.7)
+        list(REMOVE_ITEM packages "ICU")
     endif()
 
     set(build_dir "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${cmake_version}-${arg_NAME}")
