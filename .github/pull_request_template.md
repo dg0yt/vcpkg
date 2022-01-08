@@ -1,15 +1,27 @@
-**Describe the pull request**
+<!-- Please describe the pull request here before submitting. -->
 
-- #### What does your PR fix?  
-  Fixes #...
+#### What does your PR fix?
 
-- #### Which triplets are supported/not supported? Have you updated the [CI baseline](https://github.com/microsoft/vcpkg/blob/master/scripts/ci.baseline.txt)?  
-  <all / linux, windows, ...>, <Yes/No>
+Fixes #...
 
-- #### Does your PR follow the [maintainer guide](https://github.com/microsoft/vcpkg/blob/master/docs/maintainers/maintainer-guide.md)?  
-  `Your answer`
+#### Which platforms are supported/not supported by upstream?
+  <all / linux, windows, ... / unchanged>
 
-- #### If you have added/updated a port: Have you run `./vcpkg x-add-version --all` and committed the result?  
-  <Yes / I am still working on this PR>
+#### Which triplets did you test?
+  <x64-linux, x64-windows, ...>
 
-**If you are still working on the PR, open it as a Draft: https://github.blog/2019-02-14-introducing-draft-pull-requests/**
+#### Checklist
+
+<!-- Put 'x' between '[ ]', or check the matching boxes after submitting the pull request. -->
+
+Did you update the [CI baseline](https://github.com/microsoft/vcpkg/blob/master/scripts/ci.baseline.txt)?
+- [ ] yes
+- [ ] no change needed
+
+If you changed a port:
+- [ ] My PR follows the [Maintainer guide](https://github.com/microsoft/vcpkg/blob/master/docs/maintainers/maintainer-guide.md).
+- [ ] I run `./vcpkg x-add-version --all` and committed the result.
+
+General
+- [ ] I am still working on this PR. (To be opened as a draft.)
+  <!-- About drafts: https://github.blog/2019-02-14-introducing-draft-pull-requests/ -->
