@@ -164,7 +164,11 @@ function(vcpkg_cmake_config_fixup)
     #Since those can be renamed we have to check in every *.cmake
     file(GLOB_RECURSE main_cmakes "${release_share}/*.cmake")
 
+    set(Z_VCPKG_CMAKE_CONFIG_FIXUP_DONE "" CACHE STRING "Files which have been processed in a previous call")
+    list(REMOVE_ITEM main_cmakes ${Z_VCPKG_CMAKE_CONFIG_FIXUP_DONE})
+
     foreach(main_cmake IN LISTS main_cmakes)
+        message(STATUS "*** ${main_cmake}\n${Z_VCPKG_CMAKE_CONFIG_FIXUP_DONE}")
         file(READ "${main_cmake}" contents)
         # Note: I think the following comment is no longer true, since we now require the path to be `share/blah`
         # however, I don't know it for sure.
@@ -240,7 +244,9 @@ get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)]]
         endif()
 
         file(WRITE "${main_cmake}" "${contents}")
+        vcpkg_list(APPEND Z_VCPKG_CMAKE_CONFIG_FIXUP_DONE "${main_cmake}")
     endforeach()
+    set(Z_VCPKG_CMAKE_CONFIG_FIXUP_DONE CACHE STRING "" FORCE)
 
     file(GLOB_RECURSE unused_files
         "${debug_share}/*[Tt]argets.cmake"
