@@ -6,24 +6,11 @@
   "homepage": "https://www.qt.io/",
   "license": null,
   "dependencies": [
-    {
-      "name": "angle",
-      "platform": "!windows"
-    },
     "double-conversion",
-    "egl-registry",
-    {
-      "name": "fontconfig",
-      "platform": "!windows"
-    },
-    "freetype",
-    "harfbuzz",
     {
       "name": "icu",
       "platform": "!uwp"
     },
-    "libjpeg-turbo",
-    "libpng",
     "openssl",
     "pcre2",
     {
@@ -39,7 +26,28 @@
     "zlib",
     "zstd"
   ],
+  "default-features": [
+    "gui"
+  ],
   "features": {
+    "gui": {
+      "description": "Build GUI features, including QWidgets",
+      "dependencies": [
+        {
+          "name": "angle",
+          "platform": "!windows"
+        },
+        "egl-registry",
+        {
+          "name": "fontconfig",
+          "platform": "!windows"
+        },
+        "freetype",
+        "harfbuzz",
+        "libjpeg-turbo",
+        "libpng"
+      ]
+    },
     "latest": {
       "description": "Build latest qt version (5.15.3) instead of LTS (latest and LTS are currently the same)"
     },
@@ -58,6 +66,13 @@
     "vulkan": {
       "description": "Enable Vulkan support in QtGui",
       "dependencies": [
+        {
+          "name": "qt5-base",
+          "default-features": false,
+          "features": [
+            "gui"
+          ]
+        },
         "vulkan"
       ]
     }
