@@ -36,7 +36,9 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
 
 
 if(VCPKG_TARGET_IS_LINUX)
-    message("WebP currently requires the following library from the system package manager:\n    Xxf86vm\n\nThis can be installed on Ubuntu systems via apt-get install libxxf86vm-dev")
+    if("vwebp" IN_LIST FEATURES)
+        message(STATUS "The vwebp WebP currently requires the following library from the system package manager:\n    Xxf86vm\n\nThis can be installed on Ubuntu systems via apt-get install libxxf86vm-dev")
+    endif()
 endif()
 
 if(VCPKG_TARGET_IS_OSX)
