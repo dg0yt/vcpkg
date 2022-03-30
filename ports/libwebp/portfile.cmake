@@ -8,7 +8,6 @@ vcpkg_from_github(
     0001-build.patch
     0002-cmake-config-add-backwards-compatibility.patch
     0003-fix-tool-dependencies.patch
-    0004-add-missing-linked-library.patch
     0006-fix-dependecies-platform.patch
     0007-fix-arm-build.patch
     0008-sdl.patch
