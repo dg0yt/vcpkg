@@ -9,23 +9,6 @@ function(configure_qt)
         list(APPEND _csc_OPTIONS -platform ${_csc_HOST_PLATFORM})
     endif()
     
-    if(DEFINED _csc_HOST_TOOLS_ROOT)
-        ## vcpkg internal file struture assumed here!
-        message(STATUS "Building Qt with prepared host tools from ${_csc_HOST_TOOLS_ROOT}!")
-        vcpkg_add_to_path("${_csc_HOST_TOOLS_ROOT}/bin")
-        vcpkg_add_to_path("${_csc_HOST_TOOLS_ROOT}")
-        set(EXT_BIN_DIR -external-hostbindir ${_csc_HOST_TOOLS_ROOT}/bin) # we only use release binaries for building
-        find_program(QMAKE_COMMAND NAMES qmake PATHS ${_csc_HOST_TOOLS_ROOT}/bin NO_DEFAULT_PATH)
-        set(INVOKE "${QMAKE_COMMAND}" )
-    else()
-        if(CMAKE_HOST_WIN32)
-            set(CONFIGURE_BAT "configure.bat")
-        else()
-            set(CONFIGURE_BAT "configure")
-        endif()
-        set(INVOKE "${_csc_SOURCE_PATH}/${CONFIGURE_BAT}")
-    endif()
-
     #Cleanup previous build folders
     file(REMOVE_RECURSE "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel" "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg")
 
@@ -91,7 +74,6 @@ function(configure_qt)
         set(BUILD_OPTIONS ${_csc_OPTIONS} ${_csc_OPTIONS_${_buildname}}
                 -prefix ${CURRENT_INSTALLED_DIR}
                 #-extprefix ${CURRENT_INSTALLED_DIR}
-                ${EXT_BIN_DIR}
                 -hostprefix ${CURRENT_INSTALLED_DIR}/tools/qt5${_path_suffix_${_buildname}}
                 #-hostprefix ${CURRENT_INSTALLED_DIR}/tools/qt5
                 -hostlibdir ${CURRENT_INSTALLED_DIR}/tools/qt5${_path_suffix_${_buildname}}/lib # could probably be move to manual-link
@@ -111,21 +93,56 @@ function(configure_qt)
                 -I ${CURRENT_INSTALLED_DIR}/include/qt5
                 -L ${CURRENT_INSTALLED_DIR}${_path_suffix_${_buildname}}/lib 
                 -L ${CURRENT_INSTALLED_DIR}${_path_suffix_${_buildname}}/lib/manual-link
-                -platform ${_csc_TARGET_PLATFORM}
             )
         
-        if(DEFINED _csc_HOST_TOOLS_ROOT) #use qmake
-            if(WIN32)
-                set(INVOKE_OPTIONS "QMAKE_CXX.QMAKE_MSC_VER=1911" "QMAKE_MSC_VER=1911")
+        if(NOT DEFINED _csc_HOST_TOOLS_ROOT)
+            # Regular bootstrapping with configure
+            vcpkg_list(APPEND BUILD_OPTIONS
+                -platform "${_csc_TARGET_PLATFORM}"
+            )
+            set(script_suffix "")
+            if(CMAKE_HOST_WIN32)
+                set(script_suffix ".bat")
             endif()
             vcpkg_execute_required_process(
-                COMMAND ${INVOKE} "${_csc_SOURCE_PATH}" "${INVOKE_OPTIONS}" -- ${BUILD_OPTIONS}
+                COMMAND "${_csc_SOURCE_PATH}/configure${script_suffix}" ${BUILD_OPTIONS}
                 WORKING_DIRECTORY ${_build_dir}
                 LOGNAME config-${_build_triplet}
             )
-        else()# call configure (builds qmake for triplet and calls it like above)
+        else()
+            # Reusing host qmake and friends
+            ## vcpkg internal file structure assumed here!
+            message(STATUS "Building Qt with prepared host tools from ${_csc_HOST_TOOLS_ROOT}!")
+            vcpkg_add_to_path("${_csc_HOST_TOOLS_ROOT}/bin")
+            vcpkg_add_to_path("${_csc_HOST_TOOLS_ROOT}")
+            find_program(QMAKE_COMMAND NAMES qmake PATHS ${_csc_HOST_TOOLS_ROOT}/bin NO_DEFAULT_PATH REQUIRED)
+            vcpkg_list(APPEND BUILD_OPTIONS
+                -xplatform "${_csc_TARGET_PLATFORM}"
+                #-external-hostbindir "${_csc_HOST_TOOLS_ROOT}/bin" # we only use release binaries for building
+            )
+            vcpkg_list(SET QMAKE_OPTIONS)
+            # Provide a minimal qt.conf for bootstrapping
+            file(MAKE_DIRECTORY "${_build_dir}/bin")
+            file(WRITE "${_build_dir}/bin/qt.conf" "\
+[EffectivePaths]
+Prefix=..
+[Paths]
+TargetSpec=dummy
+[EffectiveSourcePaths]
+Prefix=${_csc_SOURCE_PATH}
+")
+            vcpkg_list(APPEND QMAKE_OPTIONS
+                -qtconf "${_build_dir}/bin/qt.conf"
+            )
+
+            if(VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
+                vcpkg_list(APPEND QMAKE_OPTIONS
+                    "QMAKE_CXX.QMAKE_MSC_VER=1911"
+                    "QMAKE_MSC_VER=1911"
+                )
+            endif()
             vcpkg_execute_required_process(
-                COMMAND "${INVOKE}" ${BUILD_OPTIONS}
+                COMMAND "${QMAKE_COMMAND}" "${_csc_SOURCE_PATH}" ${QMAKE_OPTIONS} -- ${BUILD_OPTIONS}
                 WORKING_DIRECTORY ${_build_dir}
                 LOGNAME config-${_build_triplet}
             )
