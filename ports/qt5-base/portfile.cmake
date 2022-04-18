@@ -23,17 +23,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 if("latest" IN_LIST FEATURES) # latest = core currently
     set(QT_BUILD_LATEST ON)
-    set(PATCHES
-        patches/Qt5BasicConfig.patch
-        patches/Qt5PluginTarget.patch
-        patches/create_cmake.patch
-        )
-else()
-    set(PATCHES
-        patches/Qt5BasicConfig.patch
-        patches/Qt5PluginTarget.patch
-        patches/create_cmake.patch
-    )
 endif()
 
 set(WITH_PGSQL_PLUGIN OFF)
@@ -85,7 +74,9 @@ qt_download_submodule(  OUT_SOURCE_PATH SOURCE_PATH
                                                                #Be carefull since it requires definining _GDI32_ for all dependent projects due to redefinition errors in the
                                                                #the windows supplied gl.h header and the angle gl.h otherwise.
                             #CMake fixes
-                            ${PATCHES}
+                            patches/Qt5BasicConfig.patch
+                            patches/Qt5PluginTarget.patch
+                            patches/create_cmake.patch
                             patches/Qt5GuiConfigExtras.patch # Patches the library search behavior for EGL since angle is not build with Qt
                             patches/limits_include.patch       # Add missing includes to build with gcc 11
                     )
