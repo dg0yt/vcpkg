@@ -123,7 +123,7 @@ function(vcpkg_configure_qmake)
             vcpkg_list(SET build_opt_param -- ${arg_BUILD_OPTIONS} ${arg_BUILD_OPTIONS_DEBUG})
         endif()
         vcpkg_execute_required_process(
-            COMMAND "${qmake_executable}" CONFIG-=release CONFIG+=debug
+            COMMAND "${qmake_executable}" -d CONFIG-=release CONFIG+=debug
                     ${arg_OPTIONS} ${arg_OPTIONS_DEBUG} ${arg_SOURCE_PATH}
                     -qtconf "${current_binary_dir}/qt.conf"
                     ${build_opt_param}
