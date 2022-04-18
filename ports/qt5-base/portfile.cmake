@@ -206,7 +206,7 @@ find_library(ICUDATA_RELEASE NAMES icudata libicudata icudt PATHS "${CURRENT_INS
 find_library(ICUDATA_DEBUG NAMES icudatad libicudatad icudata libicudata icudtd PATHS "${CURRENT_INSTALLED_DIR}/debug/lib" NO_DEFAULT_PATH)
 set(ICU_RELEASE "${ICUIN_RELEASE} ${ICUTU_RELEASE} ${ICULX_RELEASE} ${ICUUC_RELEASE} ${ICUIO_RELEASE} ${ICUDATA_RELEASE}")
 set(ICU_DEBUG "${ICUIN_DEBUG} ${ICUTU_DEBUG} ${ICULX_DEBUG} ${ICUUC_DEBUG} ${ICUIO_DEBUG} ${ICUDATA_DEBUG}")
-if(VCPKG_TARGET_IS_WINDOWS)
+if(VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
     set(ICU_RELEASE "${ICU_RELEASE} Advapi32.lib")
     set(ICU_DEBUG "${ICU_DEBUG} Advapi32.lib" )
 endif()
@@ -272,7 +272,35 @@ if("gui" IN_LIST FEATURES)
     )
 endif()
 
-if(VCPKG_TARGET_IS_WINDOWS)
+if(VCPKG_TARGET_IS_MINGW)
+    if("gui" IN_LIST FEATURES)
+        list(APPEND CORE_OPTIONS -opengl dynamic)
+        list(APPEND RELEASE_OPTIONS
+            "HARFBUZZ_LIBS=${harfbuzz_LIBRARIES_RELEASE}"
+        )
+        list(APPEND DEBUG_OPTIONS
+            "HARFBUZZ_LIBS=${harfbuzz_LIBRARIES_DEBUG}"
+        )
+    endif()
+    x_vcpkg_pkgconfig_get_modules(PREFIX OPENSSL MODULES openssl LIBRARIES)
+    list(APPEND RELEASE_OPTIONS
+            "SQLITE_LIBS=${SQLITE_RELEASE}"
+            "OPENSSL_LIBS=${OPENSSL_LIBRARIES_RELEASE}"
+        )
+    list(APPEND DEBUG_OPTIONS
+            "SQLITE_LIBS=${SQLITE_DEBUG}"
+            "OPENSSL_LIBS=${OPENSSL_LIBRARIES_DEBUG}"
+        )
+    if(WITH_PGSQL_PLUGIN)
+        list(APPEND RELEASE_OPTIONS "PSQL_LIBS=${PSQL_RELEASE} ${PSQL_PORT_RELEASE} ${PSQL_COMMON_RELEASE} ${SSL_RELEASE} ${EAY_RELEASE} ws2_32.lib secur32.lib advapi32.lib shell32.lib crypt32.lib user32.lib gdi32.lib")
+        list(APPEND DEBUG_OPTIONS "PSQL_LIBS=${PSQL_DEBUG} ${PSQL_PORT_DEBUG} ${PSQL_COMMON_DEBUG} ${SSL_DEBUG} ${EAY_DEBUG} ws2_32.lib secur32.lib advapi32.lib shell32.lib crypt32.lib user32.lib gdi32.lib")
+    endif()
+    if (WITH_MYSQL_PLUGIN)
+        list(APPEND RELEASE_OPTIONS "MYSQL_LIBS=${MYSQL_RELEASE}")
+        list(APPEND DEBUG_OPTIONS "MYSQL_LIBS=${MYSQL_DEBUG}")
+    endif(WITH_MYSQL_PLUGIN)
+
+elseif(VCPKG_TARGET_IS_WINDOWS)
     if(VCPKG_TARGET_IS_UWP)
         list(APPEND CORE_OPTIONS -appstore-compliant)
     endif()

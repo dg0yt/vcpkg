@@ -99,6 +99,9 @@ function(configure_qt)
             # Regular bootstrapping with configure
             vcpkg_list(APPEND BUILD_OPTIONS
                 -platform "${_csc_TARGET_PLATFORM}"
+                -hostprefix "${CURRENT_INSTALLED_DIR}/tools/qt5${_path_suffix_${_buildname}}"
+                -hostlibdir "${CURRENT_INSTALLED_DIR}/tools/qt5${_path_suffix_${_buildname}}/lib" # could probably be move to manual-link
+                -hostbindir "${CURRENT_INSTALLED_DIR}/tools/qt5${_path_suffix_${_buildname}}/bin"
             )
             set(script_suffix "")
             if(CMAKE_HOST_WIN32)
@@ -119,8 +122,37 @@ function(configure_qt)
             vcpkg_list(APPEND BUILD_OPTIONS
                 -xplatform "${_csc_TARGET_PLATFORM}"
                 #-external-hostbindir "${_csc_HOST_TOOLS_ROOT}/bin" # we only use release binaries for building
+                -hostprefix "${CURRENT_INSTALLED_DIR}/tools/qt5/host${_path_suffix_${_buildname}}"
+                -hostdatadir "${CURRENT_INSTALLED_DIR}/tools/qt5/host${_path_suffix_${_buildname}}"
+                -hostlibdir "${CURRENT_INSTALLED_DIR}/tools/qt5/host${_path_suffix_${_buildname}}/lib" # could probably be move to manual-link
+                -hostbindir "${CURRENT_INSTALLED_DIR}/tools/qt5/host${_path_suffix_${_buildname}}/bin"
+                -nomake tools
             )
             vcpkg_list(SET QMAKE_OPTIONS)
+            if(_csc_TARGET_PLATFORM STREQUAL "win32-g++")
+                z_vcpkg_get_cmake_vars(cmake_vars_file)
+                debug_message("Including cmake vars from: ${cmake_vars_file}")
+                include("${cmake_vars_file}")
+                if(NOT VCPKG_DETECTED_CMAKE_CXX_COMPILER MATCHES "([^/]+)g\\+\\+\$")
+                    message(FATAL_ERROR "Crosscompiling ${PORT}:${TARGET_TRIPLET} requires gcc and g++ command names with a prefix.")
+                endif()
+                set(CROSS_COMPILE "${CMAKE_MATCH_1}")
+                vcpkg_list(APPEND BUILD_OPTIONS
+                    -device-option "CROSS_COMPILE=${CROSS_COMPILE}"
+                )
+                set(ENV{XQMAKESPEC} "${_build_dir}/mkspec-${TARGET_TRIPLET}")
+                file(WRITE "$ENV{XQMAKESPEC}/qmake.conf"
+                    #"QMAKE_CC=${VCPKG_DETECTED_CMAKE_C_COMPILER}\n"
+                    #"QMAKE_CXX=${VCPKG_DETECTED_CMAKE_CXX_COMPILER}\n"
+                    #"QMAKE_LINK=${VCPKG_DETECTED_CMAKE_CXX_COMPILER}\n"
+                    #"QMAKE_LINK_C=${VCPKG_DETECTED_CMAKE_C_COMPILER}\n"
+                    "CROSS_COMPILE=${CROSS_COMPILE}\n"
+                    "include(${_csc_SOURCE_PATH}/mkspecs/win32-g++/qmake.conf)\n"
+                )
+                file(WRITE "$ENV{XQMAKESPEC}/qplatformdefs.h"
+                    "#include \"${_csc_SOURCE_PATH}/mkspecs/win32-g++/qplatformdefs.h\"\n"
+                )
+            endif()
             # Provide a minimal qt.conf for bootstrapping
             file(MAKE_DIRECTORY "${_build_dir}/bin")
             file(WRITE "${_build_dir}/bin/qt.conf" "\
@@ -146,6 +178,7 @@ Prefix=${_csc_SOURCE_PATH}
                 WORKING_DIRECTORY ${_build_dir}
                 LOGNAME config-${_build_triplet}
             )
+            file(WRITE "${_build_dir}/qmake/Makefile.qmake-aux" "first:\n%:\n\t@true\n")
         endif()
 
         # Note archdatadir and datadir are required to be prefixed with the hostprefix? 
