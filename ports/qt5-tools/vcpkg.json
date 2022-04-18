@@ -25,7 +25,7 @@
           "name": "qt5-base",
           "default-features": false,
           "features": [
-            "widgets"
+            "gui"
           ]
         },
         {
