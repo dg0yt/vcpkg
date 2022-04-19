@@ -37,13 +37,7 @@
             "gui"
           ]
         },
-        {
-          "name": "qt5-svg",
-          "default-features": false,
-          "features": [
-            "gui"
-          ]
-        }
+        "qt5-svg"
       ]
     }
   }
