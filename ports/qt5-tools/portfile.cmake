@@ -1,12 +1,11 @@
 vcpkg_list(SET libs quick widgets)
 vcpkg_list(SET OPTIONS)
-if(NOT "quick" IN_LIST FEATURES)
+if(NOT "gui" IN_LIST FEATURES)
     vcpkg_list(REMOVE_ITEM libs quick)
-    vcpkg_list(APPEND OPTIONS "QT.quick.name=")
-endif()
-if(NOT "widgets" IN_LIST FEATURES)
     vcpkg_list(REMOVE_ITEM libs widgets)
     vcpkg_list(APPEND OPTIONS
+        "QT.quick.name="
+        "QT.widgets.name="
         "config.qttools.features.assistant.disable=true"
         "config.qttools.features.designer.disable=true"
         "config.qttools.features.distancefieldgenerator.disable=true"

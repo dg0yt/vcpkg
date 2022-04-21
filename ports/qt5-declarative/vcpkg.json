@@ -10,6 +10,9 @@
       "default-features": false
     }
   ],
+  "default-features": [
+    "quick"
+  ],
   "features": {
     "quick": {
       "description": "QtQuick declarative GUI language and runtime",

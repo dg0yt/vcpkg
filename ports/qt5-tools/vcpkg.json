@@ -28,10 +28,7 @@
             "gui"
           ]
         },
-        {
-          "name": "qt5-declarative",
-          "default-features": false
-        }
+        "qt5-declarative"
       ]
     }
   }
