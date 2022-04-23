@@ -15,8 +15,18 @@
       ]
     },
     "libiconv",
-    "qt5-declarative",
-    "qt5-tools",
+    {
+      "name": "qt5-base",
+      "default-features": false
+    },
+    {
+      "name": "qt5-declarative",
+      "default-features": false
+    },
+    {
+      "name": "qt5-tools",
+      "default-features": false
+    },
     {
       "name": "vcpkg-cmake",
       "host": true

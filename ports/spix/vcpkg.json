@@ -1,6 +1,7 @@
 {
   "name": "spix",
   "version": "0.3",
+  "port-version": 1,
   "description": "A minimally invasive UI testing library that enables your Qt/QML app's UI to be controlled either via c++ code, or through an http RPC interface.",
   "homepage": "https://github.com/faaxm/spix",
   "dependencies": [
@@ -9,7 +10,13 @@
       "name": "qt5-base",
       "default-features": false
     },
-    "qt5-declarative",
+    {
+      "name": "qt5-declarative",
+      "default-features": false,
+      "features": [
+        "quick"
+      ]
+    },
     {
       "name": "vcpkg-cmake",
       "host": true
