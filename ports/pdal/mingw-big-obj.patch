@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index fb6b8b8..ed014d1 100644
+index fb6b8b8..4f733e2 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -244,6 +244,9 @@ if (GDAL_VERSION VERSION_LESS 3.0.0)
@@ -12,3 +12,42 @@ index fb6b8b8..ed014d1 100644
  
  #
  # Interface include directories allow downstream project to get the directory
+diff --git a/vendor/arbiter/CMakeLists.txt b/vendor/arbiter/CMakeLists.txt
+index a7d3f6c..d8a95ad 100644
+--- a/vendor/arbiter/CMakeLists.txt
++++ b/vendor/arbiter/CMakeLists.txt
+@@ -32,7 +32,7 @@ endif ()
+ 
+ # for dupenv_s
+ if (MINGW)
+-  target_link_libraries(${PDAL_ARBITER_LIB_NAME} PRIVATE ucrt)
++  #target_link_libraries(${PDAL_ARBITER_LIB_NAME} PRIVATE ucrt)
+ endif ()
+ 
+ if (ZLIB_FOUND)
+diff --git a/vendor/arbiter/arbiter.cpp b/vendor/arbiter/arbiter.cpp
+index 308a951..e129920 100644
+--- a/vendor/arbiter/arbiter.cpp
++++ b/vendor/arbiter/arbiter.cpp
+@@ -5752,7 +5752,7 @@ std::unique_ptr<std::string> env(const std::string& var)
+ {
+     std::unique_ptr<std::string> result;
+ 
+-#ifndef ARBITER_WINDOWS
++#if defined(ARBITER_WINDOWS) || defined(__MINGW32__)
+     if (const char* c = getenv(var.c_str())) result.reset(new std::string(c));
+ #else
+     char* c(nullptr);
+diff --git a/vendor/kazhdan/CMakeLists.txt b/vendor/kazhdan/CMakeLists.txt
+index 2cd857c..2edb481 100644
+--- a/vendor/kazhdan/CMakeLists.txt
++++ b/vendor/kazhdan/CMakeLists.txt
+@@ -12,5 +12,8 @@ if (UNIX)
+     target_compile_options(${PDAL_KAZHDAN_LIB_NAME} PRIVATE -fPIC)
+ endif()
+ target_link_libraries(${PDAL_KAZHDAN_LIB_NAME})
++if(MINGW)
++    target_link_libraries(${PDAL_KAZHDAN_LIB_NAME} psapi)
++endif()
+ 
+ set_property(GLOBAL PROPERTY _PDAL_KAZHDAN_INCLUDED TRUE)
