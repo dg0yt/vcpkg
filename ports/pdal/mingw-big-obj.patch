@@ -1,0 +1,14 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fb6b8b8..ed014d1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -244,6 +244,9 @@ if (GDAL_VERSION VERSION_LESS 3.0.0)
+     list(REMOVE_ITEM SRCS ${PROJPIPELINE_FILTER_SRCS})
+ endif()
+ PDAL_ADD_LIBRARY(${PDAL_BASE_LIB_NAME} ${SRCS} ${RPLY_SRCS})
++if(MINGW)
++    target_compile_options(${PDAL_BASE_LIB_NAME} PRIVATE "-Wa,-mbig-obj")
++endif()
+ 
+ #
+ # Interface include directories allow downstream project to get the directory

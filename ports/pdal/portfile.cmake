@@ -10,6 +10,7 @@ vcpkg_from_github(
         fix-dependency.patch
         fix-unix-compiler-options.patch
         fix-find-library-suffix.patch
+        mingw-big-obj.patch
         no-pkgconfig-requires.patch
         no-rpath.patch
         use-experimental-filesystem.patch
