@@ -12,6 +12,19 @@ index fb6b8b8..4f733e2 100644
  
  #
  # Interface include directories allow downstream project to get the directory
+diff --git a/io/OptechReader.cpp b/io/OptechReader.cpp
+index bd12e70..2b7846b 100644
+--- a/io/OptechReader.cpp
++++ b/io/OptechReader.cpp
+@@ -60,7 +60,7 @@ std::string OptechReader::getName() const
+     return s_info.name;
+ }
+ 
+-#ifndef _WIN32
++#ifndef _MSC_VER
+ const size_t OptechReader::MaximumNumberOfReturns;
+ const size_t OptechReader::MaxNumRecordsInBuffer;
+ const size_t OptechReader::NumBytesInRecord;
 diff --git a/vendor/arbiter/CMakeLists.txt b/vendor/arbiter/CMakeLists.txt
 index a7d3f6c..d8a95ad 100644
 --- a/vendor/arbiter/CMakeLists.txt
