@@ -9,10 +9,6 @@
       "name": "expat",
       "platform": "windows"
     },
-    {
-      "name": "fontconfig",
-      "platform": "!windows"
-    },
     "opengl-registry",
     {
       "name": "openimageio",
@@ -24,11 +20,27 @@
     },
     "zlib"
   ],
+  "default-features": [
+    "default-features"
+  ],
   "features": {
     "collada": {
       "description": "Support for Collada (.dae) files",
       "dependencies": [
         "collada-dom"
+      ]
+    },
+    "default-features": {
+      "description": "Platform-dependent default features",
+      "dependencies": [
+        {
+          "name": "osg",
+          "default-features": false,
+          "features": [
+            "fontconfig"
+          ],
+          "platform": "!windows & !ios & !android"
+        }
       ]
     },
     "docs": {
@@ -44,6 +56,12 @@
         },
         "sdl1",
         "sdl2"
+      ]
+    },
+    "fontconfig": {
+      "description": "Enable Fontconfig support for osgText",
+      "dependencies": [
+        "fontconfig"
       ]
     },
     "nvtt": {
