@@ -46,6 +46,13 @@
         "sdl2"
       ]
     },
+    "nvtt": {
+      "description": "Build texture processing tools plugin",
+      "supports": "!(windows & static)",
+      "dependencies": [
+        "nvtt"
+      ]
+    },
     "packages": {
       "description": "Set to ON to generate CPack configuration files and packaging targets"
     },
@@ -102,11 +109,15 @@
           "name": "libxml2",
           "platform": "windows"
         },
-        {
-          "name": "nvtt",
-          "platform": "!x86"
-        },
         "openexr",
+        {
+          "name": "osg",
+          "default-features": false,
+          "features": [
+            "nvtt"
+          ],
+          "platform": "!x86 & !(windows & static)"
+        },
         "sdl1",
         "tiff"
       ]
