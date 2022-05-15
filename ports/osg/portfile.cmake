@@ -8,7 +8,6 @@ vcpkg_from_github(
 	HEAD_REF master
     PATCHES
         collada.patch
-        static.patch
         fix-sdl.patch
         fix-example-application.patch
         disable-present3d-staticview-in-linux.patch #Due to some link error we cannot solve yet, disable them in linux.
