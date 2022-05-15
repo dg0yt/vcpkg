@@ -13,9 +13,7 @@ vcpkg_from_github(
         disable-present3d-staticview-in-linux.patch #Due to some link error we cannot solve yet, disable them in linux.
         fix-curl.patch
         remove-prefix.patch # Remove this patch when cmake fix Findosg_functions.cmake
-        fix-liblas.patch
         use-boost-asio.patch
-        fix-dependency-coin.patch
         osgdb_zip_nozip.patch # This is fix symbol clashes with other libs when built in static-lib mode
 )
 
@@ -43,6 +41,16 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
         rest-http-device BUILD_OSG_PLUGIN_RESTHTTPDEVICE
 )
 
+set(plugin_vars "")
+file(STRINGS "${SOURCE_PATH}/src/osgPlugins/CMakeLists.txt" plugin_lines REGEX "ADD_PLUGIN_DIRECTORY")
+foreach(line IN LISTS plugin_lines)
+    if(NOT line MATCHES "ADD_PLUGIN_DIRECTORY\\(([^)]*)" OR NOT EXISTS "${SOURCE_PATH}/src/osgPlugins/${CMAKE_MATCH_1}/CMakeLists.txt")
+        continue()
+    endif()
+    string(TOUPPER "${CMAKE_MATCH_1}" plugin_upper)
+    list(APPEND plugin_vars "BUILD_OSG_PLUGIN_${plugin_upper}")
+endforeach()
+
 # The package osg can be configured to use different OpenGL profiles via a custom triplet file:
 # Possible values are GLCORE, GL2, GL3, GLES1, GLES2, GLES3, and GLES2+GLES3
 if(NOT DEFINED osg_OPENGL_PROFILE)
@@ -56,25 +64,28 @@ vcpkg_cmake_configure(
         -DDYNAMIC_OPENSCENEGRAPH=${OSG_DYNAMIC}
         -DDYNAMIC_OPENTHREADS=${OSG_DYNAMIC}
         -DBUILD_OSG_PLUGIN_DICOM=OFF
-        -DBUILD_OSG_PLUGIN_OPENCASCADE=OFF
-        -DBUILD_OSG_PLUGIN_INVENTOR=OFF
-        -DBUILD_OSG_PLUGIN_FBX=OFF
         -DBUILD_OSG_PLUGIN_DIRECTSHOW=OFF
+        -DBUILD_OSG_PLUGIN_FBX=OFF
+        -DBUILD_OSG_PLUGIN_FFMPEG=OFF
+        -DBUILD_OSG_PLUGIN_GSTREAMER=OFF
+        -DBUILD_OSG_PLUGIN_INVENTOR=OFF
+        -DBUILD_OSG_PLUGIN_LAS=OFF
+        -DBUILD_OSG_PLUGIN_LUA=OFF
+        -DBUILD_OSG_PLUGIN_OPENCASCADE=OFF
         -DBUILD_OSG_PLUGIN_QTKIT=OFF
         -DBUILD_OSG_PLUGIN_SVG=OFF
         -DBUILD_OSG_PLUGIN_VNC=OFF
-        -DBUILD_OSG_PLUGIN_LUA=OFF
         -DOPENGL_PROFILE=${osg_OPENGL_PROFILE}
         -DBUILD_OSG_PLUGIN_ZEROCONFDEVICE=OFF
         -DBUILD_DASHBOARD_REPORTS=OFF
         -DCMAKE_CXX_STANDARD=11
-        -DCMAKE_DISABLE_FIND_PACKAGE_FFmpeg=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_DCMTK=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_GStreamer=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_GLIB=ON
+        -DCMAKE_DISABLE_FIND_PACKAGE_Inventor=ON
         -DCMAKE_DISABLE_FIND_PACKAGE_SDL=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_LIBLAS=ON
         ${OPTIONS}
+    MAYBE_UNUSED_VARIABLES
+        BUILD_REF_DOCS_SEARCHENGINE
+        BUILD_REF_DOCS_TAGFILE
+        ${plugin_vars}
 )
 vcpkg_cmake_install()
 vcpkg_copy_pdbs()

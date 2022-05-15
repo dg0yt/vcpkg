@@ -54,7 +54,6 @@
           "name": "libiconv",
           "platform": "windows"
         },
-        "sdl1",
         "sdl2"
       ]
     },
@@ -105,7 +104,6 @@
           "name": "boost-tuple",
           "platform": "!windows"
         },
-        "coin",
         "curl",
         "freetype",
         "gdal",
@@ -121,7 +119,6 @@
           "platform": "windows"
         },
         "libjpeg-turbo",
-        "liblas",
         "libpng",
         {
           "name": "libxml2",
@@ -144,7 +141,6 @@
           ],
           "platform": "!x86 & !(windows & static)"
         },
-        "sdl1",
         "tiff"
       ]
     },
@@ -161,8 +157,7 @@
           "platform": "windows"
         },
         "libjpeg-turbo",
-        "libpng",
-        "sdl1"
+        "libpng"
       ]
     }
   }
