@@ -11,7 +11,6 @@ vcpkg_from_github(
         fix-sdl.patch
         fix-example-application.patch
         fix-curl.patch
-        remove-prefix.patch # Remove this patch when cmake fix Findosg_functions.cmake
         use-boost-asio.patch
         osgdb_zip_nozip.patch # This is fix symbol clashes with other libs when built in static-lib mode
         unofficial-export.patch
@@ -63,6 +62,7 @@ vcpkg_cmake_configure(
         ${FEATURE_OPTIONS}
         -DDYNAMIC_OPENSCENEGRAPH=${OSG_DYNAMIC}
         -DDYNAMIC_OPENTHREADS=${OSG_DYNAMIC}
+        -DOSG_MSVC_VERSIONED_DLL=OFF
         -DBUILD_OSG_PLUGIN_DICOM=OFF
         -DBUILD_OSG_PLUGIN_DIRECTSHOW=OFF
         -DBUILD_OSG_PLUGIN_FBX=OFF
