@@ -22,6 +22,7 @@ vcpkg_from_github(
         fix-imgui.patch
         fix-gcc11-compilation.patch
         blend2d-fix.patch
+        wip.cmake
 )
 
 # Upstream bug, see https://github.com/gwaldron/osgearth/issues/1002
