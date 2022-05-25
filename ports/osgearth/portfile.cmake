@@ -1,5 +1,5 @@
 # Only dynamic build need dlls
-if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+if (VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
     file(GLOB OSG_PLUGINS_SUBDIR "${CURRENT_INSTALLED_DIR}/tools/osg/osgPlugins-*")
     list(LENGTH OSG_PLUGINS_SUBDIR OSG_PLUGINS_SUBDIR_LENGTH)
     if(NOT OSG_PLUGINS_SUBDIR_LENGTH EQUAL 1)
@@ -15,9 +15,9 @@ vcpkg_from_github(
     SHA512 f922e8bbb041a498e948587f03e8dc8a07b92e641f38d50a8eafb8b3ce1e0c92bb1ee01360d57e794429912734b60cf05ba143445a442bc95af39e3dd9fc3670
     HEAD_REF master
     PATCHES
-        StaticOSG.patch # Fix port compilation in static-md module
+        #StaticOSG.patch # Fix port compilation in static-md module
         make-all-find-packages-required.patch
-        fix-dependency-osg.patch
+        #fix-dependency-osg.patch
         remove-tool-debug-suffix.patch
         fix-imgui.patch
         fix-gcc11-compilation.patch
@@ -41,8 +41,8 @@ vcpkg_cmake_configure(
     OPTIONS ${FEATURE_OPTIONS}
         -DOSGEARTH_BUILD_SHARED_LIBS=${BUILD_SHARED}
         -DNRL_STATIC_LIBRARIES=${BUILD_STATIC}
-        -DOSG_IS_STATIC=${BUILD_STATIC}
-        -DCURL_IS_STATIC=${BUILD_STATIC}
+        #-DOSG_IS_STATIC=${BUILD_STATIC}
+        #-DCURL_IS_STATIC=${BUILD_STATIC}
         -DOSGEARTH_BUILD_EXAMPLES=OFF
         -DOSGEARTH_BUILD_TESTS=OFF
         -DOSGEARTH_BUILD_DOCS=OFF
@@ -51,6 +51,7 @@ vcpkg_cmake_configure(
         -DOSGEARTH_BUILD_SILVERLINING_NODEKIT=OFF
         -DWITH_EXTERNAL_TINYXML=ON
         -DCMAKE_JOB_POOL_LINK=console # Serialize linking to avoid OOM
+        --trace
 )
 
 vcpkg_cmake_install()
