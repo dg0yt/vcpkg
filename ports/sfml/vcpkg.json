@@ -11,6 +11,7 @@
     "libogg",
     "libvorbis",
     "openal-soft",
+    "opengl",
     "stb",
     {
       "name": "vcpkg-cmake",
