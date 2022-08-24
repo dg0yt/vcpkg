@@ -26,6 +26,8 @@ else()
         NO_ADDITIONAL_PATHS
     )
     vcpkg_install_make()
+    vcpkg_fixup_pkgconfig()
+    file(INSTALL ${CMAKE_CURRENT_LIST_DIR}/coinutils-config.cmake DESTINATION ${CURRENT_PACKAGES_DIR}/share/coinutils RENAME CoinUtilsConfig.cmake)
 endif()
 
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
