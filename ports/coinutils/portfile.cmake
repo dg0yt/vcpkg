@@ -1,4 +1,6 @@
-vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+if(VCPKG_TARGET_IS_WINDOWS)
+    vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+endif()
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
@@ -7,29 +9,21 @@ vcpkg_from_github(
     SHA512 1c2e7f796524d67d87253bc7938c1a6db3c8266acec6b6399aeb83c0fb253b77507e6b5e84f16b0b8e40098aef94676499f396d1c7f653b1e04cbadca7620185
 )
 
-if(0)
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt DESTINATION ${SOURCE_PATH})
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/Config.cmake.in DESTINATION ${SOURCE_PATH})
-
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_configure_make(
+    SOURCE_PATH "${SOURCE_PATH}/CoinUtils"
+    NO_ADDITIONAL_PATHS
+    OPTIONS
+        --without-blas
+        --without-lapack
+        --without-glpk
+        --without-sample
+        --without-netlib
+        ac_cv_prog_coin_have_doxygen=no
 )
+vcpkg_install_make()
+vcpkg_fixup_pkgconfig()
+file(INSTALL ${CMAKE_CURRENT_LIST_DIR}/coinutils-config.cmake DESTINATION ${CURRENT_PACKAGES_DIR}/share/coinutils RENAME CoinUtilsConfig.cmake)
 
-vcpkg_install_cmake()
-vcpkg_copy_pdbs()
-vcpkg_fixup_cmake_targets()
-else()
-    vcpkg_configure_make(
-        SOURCE_PATH "${SOURCE_PATH}"
-        #AUTOCONFIG
-        NO_ADDITIONAL_PATHS
-    )
-    vcpkg_install_make()
-    vcpkg_fixup_pkgconfig()
-    file(INSTALL ${CMAKE_CURRENT_LIST_DIR}/coinutils-config.cmake DESTINATION ${CURRENT_PACKAGES_DIR}/share/coinutils RENAME CoinUtilsConfig.cmake)
-endif()
+file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include ${CURRENT_PACKAGES_DIR}/debug/share)
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-
-file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/coinutils RENAME copyright)
+file(RENAME ${CURRENT_PACKAGES_DIR}/share/coinutils/LICENSE ${CURRENT_PACKAGES_DIR}/share/coinutils/copyright)

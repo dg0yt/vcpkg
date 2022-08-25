@@ -1,0 +1,32 @@
+diff -urw buildtrees/coinutils/src/89ca789982-c705f8a5e5.clean/CoinUtils/Makefile.in buildtrees/coinutils/src/89ca789982-c705f8a5e5/CoinUtils/Makefile.in
+--- buildtrees/coinutils/src/89ca789982-c705f8a5e5.clean/CoinUtils/Makefile.in	2020-01-31 11:39:08.000000000 +0100
++++ buildtrees/coinutils/src/89ca789982-c705f8a5e5/CoinUtils/Makefile.in	2022-08-25 18:22:21.139479400 +0200
+@@ -354,7 +354,7 @@
+ # Files that are generated and should be cleaned with make distclean
+ DISTCLEANFILES = $(am__append_3) $(VPATH_DISTCLEANFILES)
+ DocFiles = README AUTHORS LICENSE 
+-DocInstallDir = $(datadir)/coin/doc/$(PACKAGE_NAME)
++DocInstallDir = $(datadir)/coinutils
+ COIN_HAS_DOXYGEN = @COIN_HAS_DOXYGEN_TRUE@TRUE
+ COIN_HAS_LATEX = @COIN_HAS_LATEX_TRUE@TRUE
+ all: all-recursive
+@@ -841,6 +841,7 @@
+ .PHONY: test unitTest doxydoc
+ 
+ install-data-hook:
++install-data-hook-vcpkg-skip:
+ 	@$(mkdir_p) "$(addlibsdir)"
+ @COIN_HAS_PKGCONFIG_TRUE@	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$(DESTDIR)$(pkgconfiglibdir) \
+ @COIN_HAS_PKGCONFIG_TRUE@	"$(PKG_CONFIG)" --libs coinutils > $(addlibsdir)/coinutils_addlibs.txt
+diff -urw buildtrees/coinutils/src/89ca789982-c705f8a5e5.clean/CoinUtils/configure buildtrees/coinutils/src/89ca789982-c705f8a5e5/CoinUtils/configure
+--- buildtrees/coinutils/src/89ca789982-c705f8a5e5.clean/CoinUtils/configure	2022-08-25 17:57:14.630121100 +0200
++++ buildtrees/coinutils/src/89ca789982-c705f8a5e5/CoinUtils/configure	2020-01-31 11:39:08.000000000 +0100
+@@ -29654,7 +29654,7 @@
+ if test "x${prefix}" = xNONE ; then
+   COIN_PKG_CONFIG_PATH="${ac_default_prefix}/lib64/pkgconfig:${ac_default_prefix}/lib/pkgconfig:${ac_default_prefix}/share/pkgconfig:${COIN_PKG_CONFIG_PATH}"
+ else
+-  COIN_PKG_CONFIG_PATH="${COIN_PKG_CONFIG_PATH}"
++  COIN_PKG_CONFIG_PATH="${prefix}/lib64/pkgconfig:${prefix}/lib/pkgconfig:${prefix}/share/pkgconfig:${COIN_PKG_CONFIG_PATH}"
+ fi
+ 
+ 
