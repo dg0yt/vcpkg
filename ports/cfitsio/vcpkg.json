@@ -17,19 +17,26 @@
   ],
   "features": {
     "curl": {
-      "description": "UseCurl",
+      "description": "Enable remote file drivers (using CURL)",
       "dependencies": [
-        "curl"
-      ]
+        {
+          "name": "curl",
+          "default-features": false
+        }
+      ],
+      "supports": "!windows"
     },
     "pthreads": {
       "description": "Thread-safe build (using pthreads)",
       "dependencies": [
         {
           "name": "pthreads",
-          "platform": "windows"
+          "platform": "windows & !mingw"
         }
       ]
+    },
+    "tools": {
+      "description": "Build FPack, Funpack, and Fitscopy executables"
     }
   }
 }
