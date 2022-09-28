@@ -119,7 +119,7 @@ endif()
 
 #Remove OgreMain*.lib from lib/ folder, because autolink would complain, since it defines a main symbol
 #manual-link subfolder is here to the rescue!
-if(VCPKG_TARGET_IS_WINDOWS)
+if(VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
     file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/lib/manual-link")
     if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
         file(RENAME "${CURRENT_PACKAGES_DIR}/lib/OgreMain.lib" "${CURRENT_PACKAGES_DIR}/lib/manual-link/OgreMain.lib")
