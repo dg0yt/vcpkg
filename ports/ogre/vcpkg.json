@@ -1,7 +1,6 @@
 {
   "name": "ogre",
-  "version": "1.12.9",
-  "port-version": 11,
+  "version": "13.4.4",
   "description": "3D Object-Oriented Graphics Rendering Engine",
   "homepage": "https://github.com/OGRECave/ogre",
   "license": "MIT",
@@ -11,6 +10,7 @@
       "name": "sdl2",
       "platform": "!android"
     },
+    "stb",
     {
       "name": "vcpkg-cmake",
       "host": true
@@ -25,7 +25,7 @@
     "assimp",
     "freeimage",
     "overlay",
-    "zziplib"
+    "zip"
   ],
   "features": {
     "assimp": {
@@ -45,7 +45,10 @@
     "freeimage": {
       "description": "Build with FreeImage support (no effect for Emscripten)",
       "dependencies": [
-        "freeimage"
+        {
+          "name": "freeimage",
+          "platform": "!emscripten"
+        }
       ]
     },
     "java": {
@@ -87,12 +90,18 @@
       "description": "Build tools",
       "supports": "!android & !emscripten"
     },
+    "zip": {
+      "description": "Build ZIP archive support"
+    },
     "zziplib": {
-      "description": "Build with zziplib support",
+      "description": "Obsolete, use zip feature instead",
       "dependencies": [
         {
-          "name": "zziplib",
-          "default-features": false
+          "name": "ogre",
+          "default-features": false,
+          "features": [
+            "zip"
+          ]
         }
       ]
     }

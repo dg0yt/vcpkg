@@ -13,16 +13,13 @@ endif()
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO OGRECave/ogre
-    REF 7d0c8181ac43ad20bdba326abbd3deeddf310f0b #v1.12.9
-    SHA512 f223075f49a2465cd5070f5efa796aa715f3ea2fefd578e4ec0a11be2fd3330922849ed804e1df004209abafaa7b24ff42432dd79f336a56063e3cf38ae0e8c9
+    REF v13.4.4
+    SHA512 59e0929f5022b2d289030d42c651ce4f44a215be7aae262b1b6919e1d00225d226cce6bfa2e78525ae902290615c87eabe7b8dfe27b7087dd56081460bd35e1f
     HEAD_REF master
     PATCHES
-        install-layout.patch
         fix-dependencies.patch
-        disable-dependency-qt.patch
-        osx-sysroot.patch
+        cfg-rel-paths.patch
         swig-python-polyfill.patch
-        fix-cmake-feature-summary.patch
 )
 
 file(REMOVE "${SOURCE_PATH}/CMake/Packages/FindOpenEXR.cmake")
@@ -33,7 +30,7 @@ string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "static" OGRE_CONFIG_STATIC_LINK_CRT
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
   FEATURES
     assimp   OGRE_BUILD_PLUGIN_ASSIMP
-    assimp   CMAKE_REQUIRE_FIND_PACKAGE_ASSIMP
+    assimp   CMAKE_REQUIRE_FIND_PACKAGE_assimp
     d3d9     OGRE_BUILD_RENDERSYSTEM_D3D9
     freeimage OGRE_BUILD_PLUGIN_FREEIMAGE
     freeimage CMAKE_REQUIRE_FIND_PACKAGE_FreeImage
@@ -48,8 +45,7 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     csharp   CMAKE_REQUIRE_FIND_PACKAGE_SWIG
     overlay  OGRE_BUILD_COMPONENT_OVERLAY
     overlay  CMAKE_REQUIRE_FIND_PACKAGE_FREETYPE
-    zziplib  OGRE_CONFIG_ENABLE_ZIP
-    zziplib  CMAKE_REQUIRE_FIND_PACKAGE_ZZip
+    zip      OGRE_CONFIG_ENABLE_ZIP
     strict   OGRE_RESOURCEMANAGER_STRICT
     tools    OGRE_BUILD_TOOLS
     tools    OGRE_INSTALL_TOOLS
@@ -63,6 +59,10 @@ vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         ${FEATURE_OPTIONS}
+        -DOGRE_CFG_INSTALL_PATH=etc/${PORT}
+        -DOGRE_CMAKE_DIR=share/${PORT}
+        -DOGRE_MEDIA_PATH=share/${PORT}/Media
+        -DOGRE_PLUGINS_PATH=plugins/${PORT}
         -DOGRE_BUILD_DEPENDENCIES=OFF
         -DOGRE_BUILD_LIBS_AS_FRAMEWORKS=OFF
         -DOGRE_BUILD_SAMPLES=OFF
@@ -75,7 +75,6 @@ vcpkg_cmake_configure(
         -DOGRE_INSTALL_DOCS=OFF
         -DOGRE_INSTALL_PDB=OFF
         -DOGRE_INSTALL_SAMPLES=OFF
-        -DOGRE_INSTALL_CMAKE=ON
         -DOGRE_INSTALL_VSPROPS=OFF
         -DOGRE_STATIC=${OGRE_STATIC}
         -DOGRE_CONFIG_STATIC_LINK_CRT=${OGRE_CONFIG_STATIC_LINK_CRT}
@@ -106,8 +105,17 @@ vcpkg_copy_pdbs()
 vcpkg_cmake_config_fixup()
 vcpkg_fixup_pkgconfig()
 
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+if(NOT VCPKG_BUILD_TYPE)
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/debug/etc/${PORT}/resources.cfg" "=../../share" "=../../../share")
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/${PORT}/OgreTargets-debug.cmake" "${_IMPORT_PREFIX}/plugins" "${_IMPORT_PREFIX}/debug/plugins")
+endif()
+
+file(REMOVE_RECURSE
+    "${CURRENT_PACKAGES_DIR}/etc/ogre/samples.cfg"
+    "${CURRENT_PACKAGES_DIR}/debug/etc/ogre/samples.cfg"
+    "${CURRENT_PACKAGES_DIR}/debug/include"
+    "${CURRENT_PACKAGES_DIR}/debug/share"
+)
 
 set(tools OgreMeshUpgrader OgreXMLConverter VRMLConverter)
 if(OGRE_BUILD_PLUGIN_ASSIMP)
@@ -140,18 +148,6 @@ if(VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
         file(READ "${SHARE_FILE}" _contents)
         string(REPLACE "lib/OgreMain" "lib/manual-link/OgreMain" _contents "${_contents}")
         file(WRITE "${SHARE_FILE}" "${_contents}")
-    endforeach()
-endif()
-
-file(GLOB share_cfgs "${CURRENT_PACKAGES_DIR}/etc/ogre/*.cfg")
-foreach(file ${share_cfgs})
-    vcpkg_replace_string("${file}" "${CURRENT_PACKAGES_DIR}" "../..")
-endforeach()
-if(NOT VCPKG_BUILD_TYPE)
-    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/debug/etc/ogre/plugins.cfg" "${CURRENT_PACKAGES_DIR}/debug" "../..")
-    file(GLOB share_cfgs "${CURRENT_PACKAGES_DIR}/debug/etc/ogre/*.cfg")
-    foreach(file ${share_cfgs})
-        vcpkg_replace_string("${file}" "${CURRENT_PACKAGES_DIR}/debug" "../../..")
     endforeach()
 endif()
 
