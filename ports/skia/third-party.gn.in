@@ -1,0 +1,9 @@
+import("../third_party.gni")
+
+system("@gn_module@") {
+  if(is_debug) {
+@GN_OUT_DEBUG@
+  } else {
+@GN_OUT_RELEASE@
+  }
+}

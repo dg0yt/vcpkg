@@ -108,12 +108,42 @@ function(replace_skia_dep NAME INCLUDES LIBS_DBG LIBS_REL DEFINITIONS)
     configure_file("${CMAKE_CURRENT_LIST_DIR}/${NAME}.gn" "${OUT_FILE}" @ONLY)
 endfunction()
 
+function(pkgconfig_to_gn pc_module gn_module)
+    x_vcpkg_pkgconfig_get_modules(PREFIX PC_${module} MODULES ${pc_module} CFLAGS LIBS)
+    foreach(config IN ITEMS DEBUG RELEASE)
+        separate_arguments(cflags UNIX_COMMAND "${PC_${module}_CFLAGS_${config}}")
+        set(defines "${cflags}")
+        list(FILTER defines INCLUDE REGEX "^-D" )
+        list(TRANSFORM defines REPLACE "^-D" "")
+        list(APPEND defines ${ARGN})
+        set(include_dirs "${cflags}")
+        list(FILTER include_dirs INCLUDE REGEX "^-I" )
+        list(TRANSFORM include_dirs REPLACE "^-I" "")
+        separate_arguments(libs UNIX_COMMAND "${PC_${module}_LIBS_${config}}")
+        set(lib_dirs "${libs}")
+        list(FILTER lib_dirs INCLUDE REGEX "^-L" )
+        list(TRANSFORM lib_dirs REPLACE "^-L" "")
+        list(FILTER libs INCLUDE REGEX "^-l" )
+        list(TRANSFORM libs REPLACE "^-l" "")
+        set(GN_OUT_${config} "")
+        foreach(item IN ITEMS defines include_dirs lib_dirs libs)
+            if(${item})
+                list(JOIN ${item} [[", "]] ${item})
+                string(APPEND GN_OUT_${config} "    ${item} = [ \"${${item}}\" ]\n")
+            endif()
+        endforeach()
+    endforeach()
+    set(OUT_FILE "${SOURCE_PATH}/third_party/${gn_module}/BUILD.gn")
+    file(REMOVE "${OUT_FILE}")
+    configure_file("${CMAKE_CURRENT_LIST_DIR}/third-party.gn.in" "${OUT_FILE}" @ONLY)
+endfunction()
+
 set(_INCLUDE_DIR "${CURRENT_INSTALLED_DIR}/include")
 
 replace_skia_dep(expat "/include" "libexpat,libexpatd,libexpatdMD,libexpatdMT" "libexpat,libexpatMD,libexpatMT" "")
-replace_skia_dep(freetype2 "/include" "freetype,freetyped" "freetype" "")
+pkgconfig_to_gn(freetype2 freetype2)
 replace_skia_dep(harfbuzz "/include/harfbuzz" "harfbuzz;harfbuzz-subset" "harfbuzz;harfbuzz-subset" "")
-replace_skia_dep(icu "/include" "icuuc,icuucd" "icuuc" "U_USING_ICU_NAMESPACE=0")
+pkgconfig_to_gn(icu-uc icu "U_USING_ICU_NAMESPACE=0")
 replace_skia_dep(libjpeg-turbo "/include" "jpeg,jpegd;turbojpeg,turbojpegd" "jpeg;turbojpeg" "")
 replace_skia_dep(libpng "/include" "libpng16,libpng16d" "libpng16" "")
 replace_skia_dep(libwebp "/include"
@@ -130,7 +160,7 @@ skia_enable_tools=false \
 skia_enable_spirv_validation=false \
 target_cpu=\"${VCPKG_TARGET_ARCHITECTURE}\"")
 
-if(VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
     string(APPEND OPTIONS " is_component_build=true")
 else()
     string(APPEND OPTIONS " is_component_build=false")
@@ -307,16 +337,24 @@ vcpkg_install_gn(
         ${SKIA_TARGETS}
 )
 
-message(STATUS "Installing: ${CURRENT_PACKAGES_DIR}/include/${PORT}")
-file(COPY "${SOURCE_PATH}/include"
-    DESTINATION "${CURRENT_PACKAGES_DIR}/include")
-file(RENAME "${CURRENT_PACKAGES_DIR}/include/include"
-    "${CURRENT_PACKAGES_DIR}/include/${PORT}")
-file(GLOB_RECURSE SKIA_INCLUDE_FILES LIST_DIRECTORIES false
-    "${CURRENT_PACKAGES_DIR}/include/${PORT}/*")
-foreach(file_ ${SKIA_INCLUDE_FILES})
-    vcpkg_replace_string("${file_}" "#include \"include/" "#include \"${PORT}/")
-endforeach()
+file(INSTALL "${SOURCE_PATH}/" DESTINATION "${CURRENT_PACKAGES_DIR}/include/skia" FILES_MATCHING PATTERN "*.h")
+
+function(auto_clean dir)
+    file(GLOB entries "${dir}/*")
+    file(GLOB files LIST_DIRECTORIES false "${dir}/*")
+    foreach(entry IN LISTS entries)
+        if(entry IN_LIST files)
+            continue()
+        endif()
+        file(GLOB_RECURSE children "${entry}/*")
+        if(children)
+            auto_clean("${entry}")
+        else()
+            file(REMOVE_RECURSE "${entry}")
+        endif()
+    endforeach()
+endfunction()
+auto_clean("${CURRENT_PACKAGES_DIR}/include/skia")
 
 # get a list of library dependencies for TARGET
 function(gn_desc_target_libs out_var build_dir target)
@@ -364,9 +402,15 @@ if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
         //:skia)
 endif()
 
-configure_file("${CMAKE_CURRENT_LIST_DIR}/skiaConfig.cmake.in"
-        "${CURRENT_PACKAGES_DIR}/share/skia/skiaConfig.cmake" @ONLY)
+file(INSTALL
+    "${CMAKE_CURRENT_LIST_DIR}/example/CMakeLists.txt"
+    "${SOURCE_PATH}/tools/convert-to-nia.cpp"
+    DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}/example"
+)
 
-file(INSTALL "${SOURCE_PATH}/LICENSE"
-    DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}"
-    RENAME copyright)
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/skiaConfig.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/skia") # legacy
+file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/share/unofficial-skia")
+configure_file("${CMAKE_CURRENT_LIST_DIR}/unofficial-skia-config.cmake" "${CURRENT_PACKAGES_DIR}/share/unofficial-skia/unofficial-skia-config.cmake" @ONLY)
+
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
+file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
