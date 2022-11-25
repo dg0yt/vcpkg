@@ -16,33 +16,17 @@ else()
     vcpkg_replace_string("${SOURCE_PATH}/gn/toolchain/BUILD.gn" "command = \"$shell python" "command = \"$shell '${PYTHON3}'")
 endif()
 
-function(checkout_in_path PATH URL REF)
-    if(EXISTS "${PATH}")
+function(checkout_in_path path url ref)
+    if(EXISTS "${path}")
         return()
     endif()
 
     vcpkg_from_git(
-        OUT_SOURCE_PATH DEP_SOURCE_PATH
-        URL "${URL}"
-        REF "${REF}"
+        OUT_SOURCE_PATH dep_source_path
+        URL "${url}"
+        REF "${ref}"
     )
-    file(RENAME "${DEP_SOURCE_PATH}" "${PATH}")
-    file(REMOVE_RECURSE "${DEP_SOURCE_PATH}")
-endfunction()
-
-function(checkout_in_path_with_patch PATH URL REF PATCH)
-    if(EXISTS "${PATH}")
-        return()
-    endif()
-
-    vcpkg_from_git(
-        OUT_SOURCE_PATH DEP_SOURCE_PATH
-        URL "${URL}"
-        REF "${REF}"
-        PATCHES "${PATCH}"
-    )
-    file(RENAME "${DEP_SOURCE_PATH}" "${PATH}")
-    file(REMOVE_RECURSE "${DEP_SOURCE_PATH}")
+    file(RENAME "${dep_source_path}" "${path}")
 endfunction()
 
 set(EXTERNALS "${SOURCE_PATH}/third_party/externals")
