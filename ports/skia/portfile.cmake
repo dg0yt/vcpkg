@@ -319,23 +319,30 @@ foreach(file_ ${SKIA_INCLUDE_FILES})
 endforeach()
 
 # get a list of library dependencies for TARGET
-function(gn_desc_target_libs OUTPUT BUILD_DIR TARGET)
-    z_vcpkg_install_gn_get_desc("${OUTPUT}"
+function(gn_desc_target_libs out_var build_dir target)
+    z_vcpkg_install_gn_get_desc(libs
         SOURCE_PATH "${SOURCE_PATH}"
-        BUILD_DIR "${BUILD_DIR}"
-        TARGET "${TARGET}"
+        BUILD_DIR "${build_dir}"
+        TARGET "${target}"
         WHAT_TO_DISPLAY libs)
+    vcpkg_list(SET output)
+    foreach(LIB IN LISTS libs)
+        string(REPLACE "${CURRENT_INSTALLED_DIR}" [[${skia_root}]] LIB "${LIB}")
+        string(REPLACE "${CURRENT_PACKAGES_DIR}" [[${skia_root}]] LIB "${LIB}")
+        vcpkg_list(APPEND output "${LIB}")
+    endforeach()
+    set("${out_var}" "${output}" PARENT_SCOPE)
 endfunction()
 
-function(gn_desc_target_defines OUTPUT BUILD_DIR TARGET)
-    z_vcpkg_install_gn_get_desc(OUTPUT_
+function(gn_desc_target_defines out_var build_dir target)
+    z_vcpkg_install_gn_get_desc(output
         SOURCE_PATH "${SOURCE_PATH}"
-        BUILD_DIR "${BUILD_DIR}"
-        TARGET "${TARGET}"
+        BUILD_DIR "${build_dir}"
+        TARGET "${target}"
         WHAT_TO_DISPLAY defines)
     # exclude system defines such as _HAS_EXCEPTIONS=0
-    list(FILTER OUTPUT_ EXCLUDE REGEX "^_")
-    set(${OUTPUT} ${OUTPUT_} PARENT_SCOPE)
+    list(FILTER output EXCLUDE REGEX "^_")
+    set("${out_var}" "${output}" PARENT_SCOPE)
 endfunction()
 
 # skiaConfig.cmake.in input variables
