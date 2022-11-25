@@ -68,15 +68,23 @@ checkout_in_path("${EXTERNALS}/piex"
     "bb217acdca1cc0c16b704669dd6f91a1b509c406"
 )
 
-# turn a CMake list into a GN list of quoted items
+# Turn a CMake list into a gn list:
 # "a;b;c" -> ["a","b","c"]
-function(cmake_to_gn_list OUTPUT_ INPUT_)
-    if(NOT INPUT_)
-        set(${OUTPUT_} "[]" PARENT_SCOPE)
-    else()
-        string(REPLACE ";" "\",\"" TEMP "${INPUT_}")
-        set(${OUTPUT_} "[\"${TEMP}\"]" PARENT_SCOPE)
+function(cmake_to_gn_list out_var input)
+    if(NOT input STREQUAL "")
+        string(REPLACE ";" "\",\"" input "\"${input}\"")
     endif()
+    set("${out_var}" "[ ${input} ]" PARENT_SCOPE)
+endfunction()
+
+# Turn a space separated string into a gn list:
+# "a b c" -> ["a","b","c"]
+function(string_to_gn_list out_var input)
+    string(STRIP "${input}" input)
+    if(NOT input STREQUAL "")
+        string(REGEX REPLACE "  *" "\",\"" input "\"${input}\"")
+    endif()
+    set("${out_var}" "[ ${input} ]" PARENT_SCOPE)
 endfunction()
 
 # multiple libraries with multiple names may be passed as
@@ -275,20 +283,11 @@ if(CMAKE_HOST_WIN32)
     endif()
     include("${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
 
-    # turn a space delimited string into a gn list:
-    # "a b c" -> ["a","b","c"]
-    function(to_gn_list OUTPUT_ INPUT_)
-        string(STRIP "${INPUT_}" TEMP)
-        string(REPLACE "  " " " TEMP "${TEMP}")
-        string(REPLACE " " "\",\"" TEMP "${TEMP}")
-        set(${OUTPUT_} "[\"${TEMP}\"]" PARENT_SCOPE)
-    endfunction()
+    string_to_gn_list(SKIA_C_FLAGS_DBG "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}")
+    string_to_gn_list(SKIA_C_FLAGS_REL "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}")
 
-    to_gn_list(SKIA_C_FLAGS_DBG "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}")
-    to_gn_list(SKIA_C_FLAGS_REL "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}")
-
-    to_gn_list(SKIA_CXX_FLAGS_DBG "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
-    to_gn_list(SKIA_CXX_FLAGS_REL "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
+    string_to_gn_list(SKIA_CXX_FLAGS_DBG "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
+    string_to_gn_list(SKIA_CXX_FLAGS_REL "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
 
     string(APPEND OPTIONS_DBG " extra_cflags_c=${SKIA_C_FLAGS_DBG} \
         extra_cflags_cc=${SKIA_CXX_FLAGS_DBG}")
