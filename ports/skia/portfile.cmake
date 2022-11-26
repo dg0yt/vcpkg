@@ -337,7 +337,7 @@ vcpkg_install_gn(
         ${SKIA_TARGETS}
 )
 
-file(INSTALL "${SOURCE_PATH}/" DESTINATION "${CURRENT_PACKAGES_DIR}/include/skia" FILES_MATCHING PATTERN "*.h")
+file(COPY "${SOURCE_PATH}/" DESTINATION "${CURRENT_PACKAGES_DIR}/include/skia" FILES_MATCHING PATTERN "*.h")
 
 function(auto_clean dir)
     file(GLOB entries "${dir}/*")
@@ -363,10 +363,15 @@ function(gn_desc_target_libs out_var build_dir target)
         BUILD_DIR "${build_dir}"
         TARGET "${target}"
         WHAT_TO_DISPLAY libs)
+    z_vcpkg_install_gn_get_desc(frameworks
+        SOURCE_PATH "${SOURCE_PATH}"
+        BUILD_DIR "${build_dir}"
+        TARGET "${target}"
+        WHAT_TO_DISPLAY frameworks)
     vcpkg_list(SET output)
-    foreach(LIB IN LISTS libs)
-        string(REPLACE "${CURRENT_INSTALLED_DIR}" [[${skia_root}]] LIB "${LIB}")
-        string(REPLACE "${CURRENT_PACKAGES_DIR}" [[${skia_root}]] LIB "${LIB}")
+    foreach(LIB IN LISTS libs frameworks)
+        string(REPLACE "${CURRENT_INSTALLED_DIR}" [[${vcpkg_root}]] LIB "${LIB}")
+        string(REPLACE "${CURRENT_PACKAGES_DIR}" [[${vcpkg_root}]] LIB "${LIB}")
         vcpkg_list(APPEND output "${LIB}")
     endforeach()
     set("${out_var}" "${output}" PARENT_SCOPE)

@@ -1,18 +1,18 @@
 # Compute the installation prefix relative to this file.
-get_filename_component(skia_root "${CMAKE_CURRENT_LIST_FILE}" PATH)
-get_filename_component(skia_root "${skia_root}" PATH)
-get_filename_component(skia_root "${skia_root}" PATH)
-if(skia_root STREQUAL "/")
-    set(skia_root "")
+get_filename_component(vcpkg_root "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(vcpkg_root "${vcpkg_root}" PATH)
+get_filename_component(vcpkg_root "${vcpkg_root}" PATH)
+if(vcpkg_root STREQUAL "/")
+    set(vcpkg_root "")
 endif()
 
-find_library(SKIA_LIB_REL NAMES skia skia.dll PATHS "${skia_root}/lib" NO_DEFAULT_PATH)
-find_library(SKIA_LIB_DBG NAMES skia skia.dll PATHS "${skia_root}/debug/lib" NO_DEFAULT_PATH)
+find_library(SKIA_LIB_REL NAMES skia skia.dll PATHS "${vcpkg_root}/lib" NO_DEFAULT_PATH)
+find_library(SKIA_LIB_DBG NAMES skia skia.dll PATHS "${vcpkg_root}/debug/lib" NO_DEFAULT_PATH)
 
 if(NOT TARGET unofficial::skia::skia)
     add_library(unofficial::skia::skia UNKNOWN IMPORTED)
     set_target_properties(unofficial::skia::skia PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${skia_root}/include/skia;${skia_root}/include/skia/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${vcpkg_root}/include/skia;${vcpkg_root}/include/skia/include"
     )
 
     if(SKIA_LIB_REL)
@@ -89,14 +89,16 @@ if(NOT TARGET unofficial::skia::skia)
         endif()
     endfunction()
 
+    # @SKIA_DEP_REL@
     set_dependencies(
         [[$<NOT:$<CONFIG:Release>>]]
-        "${skia_root}/debug/lib"
+        "${vcpkg_root}/debug/lib"
         "@SKIA_DEP_DBG@"
     )
+    # @SKIA_DEP_DBG@
     set_dependencies(
         [[$<CONFIG:Release>]]
-        "${skia_root}/lib"
+        "${vcpkg_root}/lib"
         "@SKIA_DEP_REL@"
     )
 endif()
