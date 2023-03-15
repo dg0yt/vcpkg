@@ -12,7 +12,7 @@ index 3d9691d..dab3b6e 100644
  %.$(OBJEXT): %.c
  	$(COMPILE) -c $< \
 diff --git a/aclocal.m4 b/aclocal.m4
-index 1d218a0..20d2ce2 100644
+index 1d218a0..1ff02c8 100644
 --- a/aclocal.m4
 +++ b/aclocal.m4
 @@ -301,7 +301,7 @@ AC_DEFUN([GMP_TRY_ASSEMBLE],
@@ -20,7 +20,7 @@ index 1d218a0..20d2ce2 100644
  [$1]
  EOF
 -gmp_assemble="$CC $CFLAGS $CPPFLAGS -c conftest.s >conftest.out 2>&1"
-+gmp_assemble="$CCAS $CFLAGS $CPPFLAGS $ASMFLAGS -c conftest.s >conftest.out 2>&1"
++gmp_assemble="$CCAS $CPPFLAGS $ASMFLAGS -c conftest.s >conftest.out 2>&1"
  if AC_TRY_EVAL(gmp_assemble); then
    cat conftest.out >&AC_FD_CC
    ifelse([$2],,:,[$2])
