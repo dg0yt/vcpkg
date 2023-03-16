@@ -25,33 +25,35 @@ index 1d218a0..1ff02c8 100644
    cat conftest.out >&AC_FD_CC
    ifelse([$2],,:,[$2])
 diff --git a/config.make.in b/config.make.in
-index f8e1f74..4668884 100644
+index f8e1f74..41f6c9e 100644
 --- a/config.make.in
 +++ b/config.make.in
-@@ -73,6 +73,8 @@ TEST_SHLIB_DIR = ${abs_top_builddir}/.lib
+@@ -73,6 +73,9 @@ TEST_SHLIB_DIR = ${abs_top_builddir}/.lib
  # flags before CPPFLAGS and LDFLAGS. While EXTRA_CFLAGS are added at the end.
  
  COMPILE = $(CC) $(PRE_CPPFLAGS) $(CPPFLAGS) $(DEFS) $(CFLAGS) $(EXTRA_CFLAGS) $(DEP_FLAGS)
 +CCAS = @CCAS@
++ASMFLAGS = @ASMFLAGS@
 +COMPILE_AS = $(CCAS) $(PRE_CPPFLAGS) $(CPPFLAGS) $(DEFS) $(ASMFLAGS) $(DEP_FLAGS)
  COMPILE_CXX = $(CXX) $(PRE_CPPFLAGS) $(CPPFLAGS) $(DEFS) $(CXXFLAGS) $(DEP_FLAGS)
  LINK = $(CC) $(CFLAGS) $(PRE_LDFLAGS) $(LDFLAGS)
  LINK_CXX = $(CXX) $(CXXFLAGS) $(PRE_LDFLAGS) $(LDFLAGS)
 diff --git a/configure.ac b/configure.ac
-index 71ebc2a..4bcf65a 100644
+index 71ebc2a..91860e4 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -134,6 +134,9 @@ LSH_RPATH_INIT([`echo $with_lib_path | sed 's/:/ /g'` \
+@@ -134,6 +134,10 @@ LSH_RPATH_INIT([`echo $with_lib_path | sed 's/:/ /g'` \
  
  # Checks for programs.
  AC_PROG_CC
 +# Copied from gmp
 +test -n "$CCAS" || CCAS='$(CC)'
 +AC_SUBST(CCAS)
++AC_SUBST(ASMFLAGS)
  
  NETTLE_CHECK_IFUNC
  
-@@ -321,7 +324,7 @@ W64_ABI=no   # For x86_64 windows
+@@ -321,7 +325,7 @@ W64_ABI=no   # For x86_64 windows
  case "$host_cpu" in
    [x86_64 | amd64])
      AC_TRY_COMPILE([
@@ -60,7 +62,7 @@ index 71ebc2a..4bcf65a 100644
  #error 64-bit x86
  #endif
      ], [], [
-@@ -374,7 +377,7 @@ case "$host_cpu" in
+@@ -374,7 +378,7 @@ case "$host_cpu" in
      ;;
    aarch64*)
      AC_TRY_COMPILE([
