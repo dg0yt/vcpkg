@@ -43,6 +43,10 @@ if(VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
     )
 endif()
 
+if(VCPKG_TARGET_IS_ANDROID AND VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
+    vcpkg_list(APPEND OPTIONS "CFLAGS=\$CFLAGS -m32")
+endif()
+
 set(disable_assembly OFF)
 set(ccas "")
 set(asmflags "-c")

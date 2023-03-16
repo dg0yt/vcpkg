@@ -53,7 +53,7 @@ if(VCPKG_DETECTED_CMAKE_C_COMPILER_ID STREQUAL "MSVC")
         #nettle_cv_asm_align_log=no
     )
     if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
-        string(APPEND asmflags " --target=i686-pc-windows-msvc")
+        string(APPEND asmflags " --target=i686-pc-windows-msvc -m32")
     elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
         string(APPEND asmflags " --target=x86_64-pc-windows-msvc")
     elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
