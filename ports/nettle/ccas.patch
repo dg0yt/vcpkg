@@ -7,7 +7,7 @@ index 3d9691d..dab3b6e 100644
  %.$(OBJEXT): %.asm $(srcdir)/m4-utils.m4 $(srcdir)/asm.m4 config.m4 machine.m4
  	$(M4) $(srcdir)/m4-utils.m4 $(srcdir)/asm.m4 config.m4 machine.m4 $< >$*.s
 -	$(COMPILE) -c $*.s
-+	$(COMPILE_AS) -c $*.s
++	$(COMPILE_AS) -c $*.s -o $@
  
  %.$(OBJEXT): %.c
  	$(COMPILE) -c $< \
