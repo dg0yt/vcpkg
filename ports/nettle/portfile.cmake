@@ -26,7 +26,7 @@ include("${cmake_vars_file}")
 
 # Temporarily set to 1 to re-generate the lists of exported symbols.
 # This is needed when the version is bumped.
-set(GENERATE_SYMBOLS 1)
+set(GENERATE_SYMBOLS 0)
 if(GENERATE_SYMBOLS)
     if(VCPKG_DETECTED_CMAKE_C_COMPILER_ID STREQUAL "MSVC")
         vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
