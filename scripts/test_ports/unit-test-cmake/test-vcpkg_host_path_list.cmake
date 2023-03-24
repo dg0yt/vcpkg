@@ -283,3 +283,47 @@ unit_test_check_variable_equal(
 )
 
 endif(VCPKG_HOST_PATH_SEPARATOR STREQUAL ":")
+
+# REMOVE_DUPLICATES
+if(VCPKG_HOST_PATH_SEPARATOR STREQUAL ";")
+
+set(var "/usr/local;/usr;/usr/bin;u:r")
+unit_test_check_variable_equal(
+    [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
+    var "/usr/local;/usr;/usr/bin;u:r"
+)
+
+set(var "/usr/local;u:r;/usr/bin;u:r")
+unit_test_check_variable_equal(
+    [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
+    var "/usr/local;u:r;/usr/bin"
+)
+
+set(var "/usr/bin;/usr;/usr/bin;u:r")
+unit_test_check_variable_equal(
+    [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
+    var "/usr/bin;/usr;u:r"
+)
+
+endif(VCPKG_HOST_PATH_SEPARATOR STREQUAL ";")
+if(VCPKG_HOST_PATH_SEPARATOR STREQUAL ":")
+
+set(var "/usr/local:/usr:/usr/bin:/u_r")
+unit_test_check_variable_equal(
+    [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
+    var "/usr/local:/usr:/usr/bin:/u_r"
+)
+
+set(var "/usr/local:/u_r:/usr/bin:/u_r")
+unit_test_check_variable_equal(
+    [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
+    var "/usr/local:/u_r:/usr/bin"
+)
+
+set(var "/usr/bin:/usr:/usr/bin:/u_r")
+unit_test_check_variable_equal(
+    [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
+    var "/usr/bin:/usr:/u_r"
+)
+
+endif(VCPKG_HOST_PATH_SEPARATOR STREQUAL ":")
