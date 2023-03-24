@@ -22,8 +22,9 @@ function(vcpkg_host_path_list)
     set(list_var "${ARGV1}")
 
     cmake_parse_arguments(PARSE_ARGV 2 arg "" "" "")
-    string(FIND "${arg_UNPARSED_ARGUMENTS}" "${VCPKG_HOST_PATH_SEPARATOR}" index_of_host_path_separator)
-    if(NOT "${index_of_host_path_separator}" EQUAL "-1")
+    set(bad_items "${arg_UNPARSED_ARGUMENTS}")
+    list(FILTER bad_items INCLUDE REGEX "[${VCPKG_HOST_PATH_SEPARATOR}]")
+    if(NOT "${bad_items}" STREQUAL "")
         message(FATAL_ERROR "Host path separator (${VCPKG_HOST_PATH_SEPARATOR}) in path; this is unsupported.")
     endif()
 

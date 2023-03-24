@@ -287,43 +287,43 @@ endif(VCPKG_HOST_PATH_SEPARATOR STREQUAL ":")
 # REMOVE_DUPLICATES
 if(VCPKG_HOST_PATH_SEPARATOR STREQUAL ";")
 
-set(var "/usr/local;/usr;/usr/bin;u:r")
+set(var "a;b;c;c:c")
 unit_test_check_variable_equal(
     [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
-    var "/usr/local;/usr;/usr/bin;u:r"
+    var "a;b;c;c:c"
 )
 
-set(var "/usr/local;u:r;/usr/bin;u:r")
+set(var "a;b;c;b")
 unit_test_check_variable_equal(
     [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
-    var "/usr/local;u:r;/usr/bin"
+    var "a;b;c"
 )
 
-set(var "/usr/bin;/usr;/usr/bin;u:r")
+set(var "a;b;a;d")
 unit_test_check_variable_equal(
     [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
-    var "/usr/bin;/usr;u:r"
+    var "a;b;d"
 )
 
 endif(VCPKG_HOST_PATH_SEPARATOR STREQUAL ";")
 if(VCPKG_HOST_PATH_SEPARATOR STREQUAL ":")
 
-set(var "/usr/local:/usr:/usr/bin:/u_r")
+set(var "a:b:c:c;c")
 unit_test_check_variable_equal(
     [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
-    var "/usr/local:/usr:/usr/bin:/u_r"
+    var "a:b:c:c;c"
 )
 
-set(var "/usr/local:/u_r:/usr/bin:/u_r")
+set(var "a:b:c:b")
 unit_test_check_variable_equal(
     [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
-    var "/usr/local:/u_r:/usr/bin"
+    var "a:b:c"
 )
 
-set(var "/usr/bin:/usr:/usr/bin:/u_r")
+set(var "a:b:a:d")
 unit_test_check_variable_equal(
     [[vcpkg_host_path_list(REMOVE_DUPLICATES var)]]
-    var "/usr/bin:/usr:/u_r"
+    var "a:b:d"
 )
 
 endif(VCPKG_HOST_PATH_SEPARATOR STREQUAL ":")
