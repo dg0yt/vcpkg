@@ -1,9 +1,11 @@
-The package vulkan does not provide cmake or visual studio integration directly.
+The vulkan package does not provide CMake or Visual Studio integration directly.
 However, it can still easily be used.
 
-    Visual Studio:
+Visual Studio:
     Include $(VULKAN_SDK)/include to your include path.
 
-    CMake:
+CMake provides built in support to find Vulkan:
+
+    # https://cmake.org/cmake/help/latest/module/FindVulkan.html
     find_package(Vulkan REQUIRED)
     target_link_libraries(main PRIVATE Vulkan::Vulkan)
