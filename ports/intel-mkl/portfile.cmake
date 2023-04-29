@@ -77,7 +77,7 @@ if(sha)
 
   if(VCPKG_TARGET_IS_WINDOWS)
     vcpkg_find_acquire_program(7Z)
-    vcpkg_execute_in_download_mode(
+    vcpkg_execute_required_process(
                             COMMAND "${7Z}" x "${archive_path}" "-o${CURRENT_PACKAGES_DIR}/intel-extract" "-y" "-bso0" "-bsp0"
                             WORKING_DIRECTORY "${CURRENT_PACKAGES_DIR}/manual-tools/${PORT}"
                         )
@@ -97,7 +97,7 @@ if(sha)
         set(archive_path "${CURRENT_PACKAGES_DIR}/intel-extract/packages/${pack}")
         cmake_path(GET pack STEM LAST_ONLY packstem)
         cmake_path(NATIVE_PATH archive_path archive_path_native)
-            vcpkg_execute_in_download_mode(
+            vcpkg_execute_required_process(
                             COMMAND "${LESSMSI}" x "${archive_path_native}" # Using output_path here does not work in bash
                             WORKING_DIRECTORY "${output_path}" 
                             OUTPUT_FILE "${CURRENT_BUILDTREES_DIR}/lessmsi-${TARGET_TRIPLET}-out.log"
@@ -182,7 +182,7 @@ if(sha)
     set(output_path "${CURRENT_PACKAGES_DIR}/intel-extract")
     file(MAKE_DIRECTORY "${output_path}")
     if(VCPKG_TARGET_IS_LINUX)
-      vcpkg_execute_in_download_mode(
+      vcpkg_execute_required_process(
                             COMMAND "bash" "--verbose" "--noprofile" "${archive_path}" "--extract-only" "--extract-folder" "${output_path}"
                             WORKING_DIRECTORY "${output_path}"
                             OUTPUT_FILE "${CURRENT_BUILDTREES_DIR}/extract-${TARGET_TRIPLET}-out.log"
@@ -196,7 +196,7 @@ if(sha)
       find_program(HDIUTIL NAMES hdiutil REQUIRED)
       set(mount_point "${CURRENT_BUILDTREES_DIR}/mount-osx")
       file(MAKE_DIRECTORY "${mount_point}")
-      vcpkg_execute_in_download_mode(
+      vcpkg_execute_required_process(
           COMMAND "${HDIUTIL}" attach "${archive_path}" -mountpoint "${mount_point}"
           OUTPUT_FILE "${CURRENT_BUILDTREES_DIR}/hdiutil-attach-${TARGET_TRIPLET}-out.log"
           ERROR_FILE "${CURRENT_BUILDTREES_DIR}/hdiutil-attach-${TARGET_TRIPLET}-err.log"
@@ -213,7 +213,7 @@ if(sha)
     )
     foreach(pack IN LISTS packages)
       message(STATUS "${pack}")
-      vcpkg_execute_in_download_mode(
+      vcpkg_execute_required_process(
           COMMAND "${CMAKE_COMMAND}" "-E" "tar" "-xf" "${package_dir}/${pack}/cupPayload.cup"
               "_installdir/compiler/2023.0.0"
               "_installdir/mkl/2023.0.0/bin"
@@ -226,7 +226,7 @@ if(sha)
       )
     endforeach()
     if(VCPKG_TARGET_IS_OSX)
-      vcpkg_execute_in_download_mode(
+      vcpkg_execute_required_process(
           COMMAND "${HDIUTIL}" detach "${mount_point}"
           OUTPUT_FILE "${CURRENT_BUILDTREES_DIR}/hdiutil-detach-${TARGET_TRIPLET}-out.log"
           ERROR_FILE "${CURRENT_BUILDTREES_DIR}/hdiutil-detach-${TARGET_TRIPLET}-err.log"
