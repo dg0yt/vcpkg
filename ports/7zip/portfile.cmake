@@ -1,3 +1,4 @@
+set(VCPKG_BUILD_TYPE "release")
 set(7ZIP_VERSION "2201")
 vcpkg_download_distfile(ARCHIVE
     URLS "https://www.7-zip.org/a/7z${7ZIP_VERSION}-src.7z"
@@ -11,17 +12,37 @@ vcpkg_extract_source_archive(
     NO_REMOVE_ONE_LEVEL
 )
 
+if("cmake" IN_LIST FEATURES)
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt" DESTINATION "${SOURCE_PATH}")
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/7zip-config.cmake.in" DESTINATION "${SOURCE_PATH}")
 
+vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
+    FEATURES
+        "tool"  BUILD_TOOL
+)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS
+        ${FEATURE_OPTIONS}
+        -DASM_TARGET=${VCPKG_TARGET_ARCHITECTURE}
 )
 
 vcpkg_cmake_install()
 vcpkg_copy_pdbs()
-
 vcpkg_cmake_config_fixup()
+
+else()
+    message(STATUS "** ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel")
+    z_vcpkg_get_cmake_vars(for_cache)
+    file(REMOVE_RECURSE "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel")
+    file(INSTALL "${SOURCE_PATH}/" DESTINATION "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel")
+    vcpkg_build_make(
+        SUBPATH "CPP/7zip/Bundles/Format7zF"
+        MAKEFILE "makefile.gcc"
+        OPTIONS _o COMPL_STATIC=1
+    )
+endif()
 
 file(
     INSTALL "${SOURCE_PATH}/DOC/License.txt"

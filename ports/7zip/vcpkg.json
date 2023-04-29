@@ -14,5 +14,13 @@
       "name": "vcpkg-cmake-config",
       "host": true
     }
-  ]
+  ],
+  "features": {
+    "cmake": {
+      "description": "x"
+    },
+    "tool": {
+      "description": "x"
+    }
+  }
 }
