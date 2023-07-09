@@ -1,3 +1,5 @@
+file(COPY_FILE "${CURRENT_INSTALLED_DIR}/lib/pkgconfig/x265.pc" "${CURRENT_BUILDTREES_DIR}/x265.pc.log")
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO FreeRDP/FreeRDP
