@@ -10,6 +10,7 @@ vcpkg_from_github(
         DontInstallSystemRuntimeLibs.patch
         fix-include-path.patch
         fix-install-destination.patch
+        libusb-pkgconfig.patch
         wfreerdp-server-cli.patch
         pr-7060-jni-onload.patch
 )

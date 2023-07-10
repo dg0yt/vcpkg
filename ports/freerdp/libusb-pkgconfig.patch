@@ -1,0 +1,15 @@
+diff --git a/channels/urbdrc/CMakeLists.txt b/channels/urbdrc/CMakeLists.txt
+index bc570e0..3320b18 100644
+--- a/channels/urbdrc/CMakeLists.txt
++++ b/channels/urbdrc/CMakeLists.txt
+@@ -23,7 +23,9 @@ add_subdirectory(common)
+ if(WITH_CLIENT_CHANNELS)
+     option(WITH_DEBUG_URBDRC "Dump data send/received in URBDRC channel" OFF)
+ 
+-    find_package(libusb-1.0 REQUIRED)
++    find_package(PkgConfig REQUIRED)
++    pkg_check_modules(LIBUSB_1 REQUIRED libusb-1.0)
++    set(LIBUSB_1_LIBRARIES "${LIBUSB_1_LINK_LIBRARIES}")
+     include_directories(${LIBUSB_1_INCLUDE_DIRS})
+ 
+     add_channel_client(${MODULE_PREFIX} ${CHANNEL_NAME})
