@@ -333,6 +333,10 @@ set(Z_VCPKG_MSYS_PACKAGES_RESOLVED "" CACHE INTERNAL "")
 vcpkg_find_acquire_program(PKGCONFIG)
 analyze_package_list(Z_VCPKG_MSYS_PACKAGES_RESOLVED "vcpkg_find_acquire_program(PKGCONFIG).cmake" DIRECT_ONLY)
 
+set(Z_VCPKG_MSYS_PACKAGES_RESOLVED "" CACHE INTERNAL "")
+vcpkg_find_acquire_program(NASM)
+analyze_package_list(Z_VCPKG_MSYS_PACKAGES_RESOLVED "vcpkg_find_acquire_program(NASM).cmake" DIRECT_ONLY)
+
 set(PATH_BAK "$ENV{PATH}")
 set(CMAKE_Fortran_COMPILER "")
 set(Z_VCPKG_MSYS_PACKAGES_RESOLVED "" CACHE INTERNAL "")
