@@ -309,6 +309,7 @@ function(z_vcpkg_cmake_config_fixup_find_config_path out_path name)
         ${config_search_pattern_2}
     )
     list(FILTER file_list EXCLUDE REGEX "^debug/.*\$")
+    list(FILTER file_list EXCLUDE REGEX "^.*/Find[^/]*onfig.cmake\$")
     list(LENGTH file_list count)
     if(count EQUAL "1")
         cmake_path(GET file_list PARENT_PATH config_path)
@@ -344,6 +345,7 @@ function(z_vcpkg_cmake_config_fixup_find_package_name out_name path)
         "${CURRENT_PACKAGES_DIR}/${path}/*Config.cmake"
         "${CURRENT_PACKAGES_DIR}/${path}/*-config.cmake"
     )
+    list(FILTER file_list EXCLUDE REGEX "^Find[^/]*[Cc]onfig.cmake\$")
     set(filename "${PORT}-config.cmake")
     list(LENGTH file_list count)
     if(count EQUAL "1")
