@@ -1,5 +1,5 @@
 diff --git a/tools/g-ir-tool-template.in b/tools/g-ir-tool-template.in
-index 75c35a7..499ed01 100644
+index 6e98f52..03cb288 100755
 --- a/tools/g-ir-tool-template.in
 +++ b/tools/g-ir-tool-template.in
 @@ -46,7 +46,7 @@ if debug:
@@ -11,7 +11,7 @@ index 75c35a7..499ed01 100644
  # Fallback to hard-coded paths if the relocatable paths are wrong
  if not os.path.isdir(os.path.join(datadir, 'gir-1.0')):
      datadir = "@datarootdir@"
-@@ -55,7 +55,7 @@ builtins.__dict__['DATADIR'] = datadir
+@@ -55,11 +55,11 @@ builtins.__dict__['DATADIR'] = datadir
  
  # Respect gir_dir_prefix
  girdir = ''
@@ -20,3 +20,20 @@ index 75c35a7..499ed01 100644
  builtins.__dict__['GIRDIR'] = [girdir]
  
  # Again, relative paths first so that the installation prefix is relocatable
+-pylibdir = os.path.abspath(os.path.join(filedir, '..', 'lib', 'gobject-introspection'))
++pylibdir = os.path.abspath(os.path.join(filedir, '..', '..', 'lib', 'gobject-introspection'))
+ 
+ # EXT_SUFFIX for py3 SO for py2
+ py_mod_suffix = sysconfig.get_config_var('EXT_SUFFIX') or sysconfig.get_config_var('SO')
+@@ -91,6 +91,11 @@ if not os.path.isfile(os.path.join(pylibdir, 'giscanner', '_giscanner' + py_mod_
+ 
+ sys.path.insert(0, pylibdir)
+ 
++pkg_config_path = os.getenv('PKG_CONFIG_PATH', '')
++if pkg_config_path:
++    pkg_config_path = os.pathsep + pkg_config_path
++os.environ['PKG_CONFIG_PATH'] = os.path.normpath(os.path.join(pylibdir, '..', 'pkgconfig')) + pkg_config_path
++
+ from giscanner.utils import dll_dirs
+ dll_dirs = dll_dirs()
+ dll_dirs.add_dll_dirs(['gio-2.0'])
