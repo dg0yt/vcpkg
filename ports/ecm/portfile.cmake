@@ -8,6 +8,7 @@ vcpkg_from_github(
         fix_canberra.patch         # https://invent.kde.org/frameworks/extra-cmake-modules/-/merge_requests/187
         fix_libmount.patch         # https://invent.kde.org/frameworks/extra-cmake-modules/-/merge_requests/200
         fix_generateqmltypes.patch # https://invent.kde.org/frameworks/extra-cmake-modules/-/merge_requests/201
+        win32-install-dirs.patch
 )
 
 vcpkg_cmake_configure(
