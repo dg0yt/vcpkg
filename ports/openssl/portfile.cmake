@@ -15,6 +15,13 @@ set(OPENSSL_VERSION_MINOR "${CMAKE_MATCH_2}")
 set(OPENSSL_VERSION_FIX "${CMAKE_MATCH_3}")
 configure_file("${CMAKE_CURRENT_LIST_DIR}/vcpkg-cmake-wrapper.cmake.in" "${CURRENT_PACKAGES_DIR}/share/${PORT}/vcpkg-cmake-wrapper.cmake" @ONLY)
 
+# Remove for openssl 3.2.0, https://github.com/openssl/openssl/pull/21309
+vcpkg_download_distfile(iossimulator_patch
+    URLS "https://github.com/openssl/openssl/pull/21309.diff?full_index=1"
+    FILENAME "openssl-iphonesimulator.diff"
+    SHA512 777deb2cb8a60709a60993726826418fcbc0754600e10416c6d28aed853ad34b60b8743a11551db822779d030a174fc1f004a87f4ec47f748beaf2052eb51807
+)
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO openssl/openssl
@@ -30,6 +37,7 @@ vcpkg_from_github(
         unix/move-openssldir.patch
         unix/no-empty-dirs.patch
         unix/no-static-libs-for-shared.patch
+        "${iossimulator_patch}"
 )
 
 vcpkg_list(SET CONFIGURE_OPTIONS
