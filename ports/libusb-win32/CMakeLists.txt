@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 project(libusb-win32)
 
 set(lib_headers src/lusb0_usb.h)
