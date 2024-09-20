@@ -10,14 +10,14 @@ vcpkg_from_github(
         picojson.diff
 )
 
+file(REMOVE_RECURSE "${SOURCE_PATH}/include/picojson")
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DJWT_BUILD_EXAMPLES=OFF
         -DJWT_CMAKE_FILES_INSTALL_DIR=share/${PORT}
 )
+
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup()
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/include/picojson")
-
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

@@ -1,8 +1,19 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5cd876f..2cf932b 100644
+index 5cd876f..eade1c6 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -121,6 +121,9 @@ endif()
+@@ -66,9 +66,8 @@ if(JWT_EXTERNAL_PICOJSON)
+   find_package(picojson 1.3.0 REQUIRED)
+ endif()
+ 
+-find_package(nlohmann_json CONFIG)
+ 
+-if(NOT nlohmann_json_FOUND)
++if(0)
+   message(STATUS "jwt-cpp: using FetchContent for nlohmann json")
+   include(FetchContent)
+   FetchContent_Declare(nlohmann_json
+@@ -121,6 +120,9 @@ endif()
  
  if(JWT_EXTERNAL_PICOJSON)
    target_link_libraries(jwt-cpp INTERFACE picojson::picojson>)
@@ -12,3 +23,12 @@ index 5cd876f..2cf932b 100644
  endif()
  
  # Hunter needs relative paths so the files are placed correctly
+@@ -138,7 +140,7 @@ install(TARGETS jwt-cpp EXPORT jwt-cpp-targets PUBLIC_HEADER DESTINATION ${CMAKE
+ install(EXPORT jwt-cpp-targets NAMESPACE jwt-cpp:: FILE jwt-cpp-targets.cmake
+         DESTINATION ${JWT_CMAKE_FILES_INSTALL_DIR})
+ install(DIRECTORY ${JWT_INCLUDE_PATH}/jwt-cpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+-if(NOT JWT_EXTERNAL_PICOJSON AND NOT JWT_DISABLE_PICOJSON)
++if(0)
+   install(FILES ${JWT_INCLUDE_PATH}/picojson/picojson.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/picojson)
+ endif()
+ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp-config-version.cmake
