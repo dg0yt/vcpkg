@@ -6,27 +6,27 @@ vcpkg_download_distfile(
 )
 
 vcpkg_from_github(
-  OUT_SOURCE_PATH SOURCE_PATH
-  REPO arrayfire/arrayfire
-  REF v${VERSION}
-  SHA512 d4f63cbb793c64082fb985582472763c08900296c3017f273a91f00d87af38dd60227ac7417fbc98b71c229c2d74b1f261061bf080e5d75f1f38b0efc7b59425
-  HEAD_REF master
-  PATCHES
-    cross-bin2cpp.diff
-    fix-miss-header-file.patch # cstdint
-    fmt-11.diff                # due to https://github.com/fmtlib/fmt/issues/3447
-    "${CUDA_PATCHES}"
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO arrayfire/arrayfire
+    REF v${VERSION}
+    SHA512 d4f63cbb793c64082fb985582472763c08900296c3017f273a91f00d87af38dd60227ac7417fbc98b71c229c2d74b1f261061bf080e5d75f1f38b0efc7b59425
+    HEAD_REF master
+    PATCHES
+        cross-bin2cpp.diff
+        fix-miss-header-file.patch # cstdint
+        fmt-11.diff                # due to https://github.com/fmtlib/fmt/issues/3447
+        "${CUDA_PATCHES}"
 )
 file(WRITE "${SOURCE_PATH}/CMakeModules/AF_vcpkg_options.cmake" "# Building vcpkg port, not top-level project")
 file(COPY_FILE "${CURRENT_INSTALLED_DIR}/include/half.hpp" "${SOURCE_PATH}/extern/half/include/half.hpp")
 
 vcpkg_check_features(
-  OUT_FEATURE_OPTIONS options
-  FEATURES
-    unified AF_BUILD_UNIFIED
-    cpu     AF_BUILD_CPU
-    cuda    AF_BUILD_CUDA
-    opencl  AF_BUILD_OPENCL
+    OUT_FEATURE_OPTIONS options
+    FEATURES
+        cpu     AF_BUILD_CPU
+        cuda    AF_BUILD_CUDA
+        opencl  AF_BUILD_OPENCL
+        unified AF_BUILD_UNIFIED
 )
 
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
@@ -67,7 +67,7 @@ vcpkg_cmake_configure(
     -DAF_INSTALL_CMAKE_DIR=share/${PORT}
     -DAF_INSTALL_EXAMPLE_DIR=share/${PORT}/examples
     -DAF_WITH_EXTERNAL_PACKAGES_ONLY=ON
-    -DAF_WITH_IMAGEIO=OFF
+    -DAF_WITH_IMAGEIO=OFF # deps
     -DAF_WITH_STATIC_MKL=${AF_WITH_STATIC_MKL}
     -DBUILD_TESTING=OFF
     ${options}

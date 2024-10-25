@@ -1,0 +1,16 @@
+diff --git a/CMakeModules/FindCBLAS.cmake b/CMakeModules/FindCBLAS.cmake
+index 31b6f72..7d00b76 100644
+--- a/CMakeModules/FindCBLAS.cmake
++++ b/CMakeModules/FindCBLAS.cmake
+@@ -1,3 +1,11 @@
++find_package(BLAS)
++if(BLAS_FOUND)
++  set(CBLAS_FOUND 1)
++  set(CBLAS_INCLUDE_DIR "")
++  set(CBLAS_LIBRARIES "${BLAS_LIBRARIES}")
++endif()
++return()
++
+ # Using FindCBLAS.cmake from the following repo
+ # https://github.com/clementfarabet/THC/blob/master/COPYRIGHT.txt
+ 
