@@ -7682,7 +7682,7 @@
     },
     "qtwayland": {
       "baseline": "6.7.3",
-      "port-version": 0
+      "port-version": 1
     },
     "qtwebchannel": {
       "baseline": "6.7.3",
