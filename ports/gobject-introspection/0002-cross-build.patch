@@ -1,60 +1,63 @@
---- a/gir/meson.build	2021-09-17 23:02:42.502052000 +0700
-+++ b/gir/meson.build	2022-01-05 02:31:25.960457800 +0700
-@@ -42,7 +42,7 @@
- install_data(gir_files, install_dir: girdir)
- 
- scanner_command = [
--  find_program('g-ir-scanner', native: true),
-+  find_program('g-ir-scanner'),
-   '--output=@OUTPUT@',
-   '--no-libtool',
-   '--quiet',
-@@ -495,6 +495,7 @@
+diff --git a/gir/meson.build b/gir/meson.build
+index 3a01683..6c8c711 100644
+--- a/gir/meson.build
++++ b/gir/meson.build
+@@ -506,11 +506,17 @@ gir_files += custom_target('gir-girepository',
  )
  
  typelibs = []
-+gircompiler = find_program('g-ir-compiler')
++if get_option('gi_cross_use_prebuilt_gi')
++  gircompiler = find_program('g-ir-compiler')
++endif
  if get_option('gi_cross_binary_wrapper') != ''
-     gircompiler_command = [get_option('gi_cross_binary_wrapper'), gircompiler.full_path(), ]
+   gircompiler_command = [get_option('gi_cross_binary_wrapper'), gircompiler.full_path(), ]
  else
-@@ -510,7 +511,7 @@
-   typelibs += custom_target('generate-typelib-@0@'.format(gir).underscorify(),
-     input: gir,
-     output: '@BASENAME@.typelib',
--    depends: [gobject_gir, gircompiler, ],
-+    depends: [gobject_gir, ],
-     command: gircompiler_command,
-     install: true,
-     install_dir: typelibdir,
---- a/tools/meson.build	2021-09-17 23:02:42.601052000 +0700
-+++ b/tools/meson.build	2022-01-05 02:36:06.103763400 +0700
-@@ -64,7 +64,9 @@
+   gircompiler_command = [gircompiler, ]
+ endif
++if get_option('gi_cross_use_prebuilt_gi')
++  gircompiler = [] # not a dependency
++endif
+ 
+ gircompiler_command += [
+   '-o', '@OUTPUT@',
+diff --git a/meson.build b/meson.build
+index 4b2e574..e10ec1e 100644
+--- a/meson.build
++++ b/meson.build
+@@ -175,7 +175,9 @@ configure_file(
+ )
+ 
+ # python headers
++if not get_option('gi_cross_use_prebuilt_gi')
+ cc.check_header('Python.h', dependencies: [python.dependency()], required: true)
++endif
+ 
+ # cairo
+ cairo_option = get_option('cairo')
+@@ -231,7 +233,12 @@ fs = import('fs')
+ 
+ subdir('girepository')
+ subdir('tools')
++if not get_option('gi_cross_use_prebuilt_gi')
+ subdir('giscanner')
++else
++  gdump = []
++  giscanner_pymod = []
++endif
+ 
+ # Not building gir data might be useful in cross-compilation
+ # scenarios where running target binaries through software emulation
+diff --git a/tools/meson.build b/tools/meson.build
+index 7237a0b..a8d9239 100644
+--- a/tools/meson.build
++++ b/tools/meson.build
+@@ -66,7 +66,9 @@ gircompiler = executable('g-ir-compiler', 'compiler.c',
    install: true,
    c_args: custom_c_args,
  )
--meson.override_find_program('g-ir-compiler', gircompiler)
 +if not get_option('gi_cross_use_prebuilt_gi')
-+  meson.override_find_program('g-ir-compiler', gircompiler)
+ meson.override_find_program('g-ir-compiler', gircompiler)
 +endif
  
  girgenerate = executable('g-ir-generate', 'generate.c',
    dependencies: [
-@@ -74,11 +76,15 @@
-   install: true,
-   c_args: custom_c_args,
- )
--meson.override_find_program('g-ir-generate', girgenerate)
-+if not get_option('gi_cross_use_prebuilt_gi')
-+  meson.override_find_program('g-ir-generate', girgenerate)
-+endif
- 
- girinspect = executable('g-ir-inspect', 'g-ir-inspect.c',
-   dependencies: girepo_dep,
-   install: true,
-   c_args: custom_c_args,
- )
--meson.override_find_program('g-ir-inspect', girinspect)
-+if not get_option('gi_cross_use_prebuilt_gi')
-+  meson.override_find_program('g-ir-inspect', girinspect)
-+endif
-\ No newline at end of file
