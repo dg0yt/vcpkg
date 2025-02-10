@@ -40,6 +40,9 @@ elseif(VCPKG_CROSSCOMPILING)
         "g-ir-scanner='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-scanner'"
     )
     file(COPY "${CURRENT_HOST_INSTALLED_DIR}/share/gobject-introspection-1.0/gdump.c" DESTINATION "${CURRENT_PACKAGES_DIR}/share/gobject-introspection-1.0")
+    if(NOT VCPKG_BUILD_TYPE)
+        file(COPY "${CURRENT_HOST_INSTALLED_DIR}/share/gobject-introspection-1.0/gdump.c" DESTINATION "${CURRENT_PACKAGES_DIR}/debug/share/gobject-introspection-1.0")
+    endif()
 endif()
 
 if("cairo" IN_LIST FEATURES)
@@ -52,29 +55,37 @@ vcpkg_configure_meson(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -Dgtk_doc=false
-    OPTIONS_DEBUG
-        -Dbuild_introspection_data=false
-        -Dcairo=disabled
-    OPTIONS_RELEASE
+    #OPTIONS_DEBUG
+    #    -Dbuild_introspection_data=false
+    #    -Dcairo=disabled
+    #OPTIONS_RELEASE
         ${options_release}
     ADDITIONAL_BINARIES
         "python='${PYTHON3}'"
         ${additional_binaries}
 )
 
-# VCPKG_GI_... variables are used by, and scoped to, giscanner
 set(ENV{PKG_CONFIG} "${PKGCONFIG}")
-set(ENV{VCPKG_GI_LIBDIR} "${CURRENT_INSTALLED_DIR}/lib")
-set(ENV{VCPKG_GI_DATADIR} "${CURRENT_PACKAGES_DIR}/share")
-file(MAKE_DIRECTORY "$ENV{VCPKG_GI_DATADIR}/gir-1.0")
-if(VCPKG_TARGET_IS_WINDOWS)
-    set(ENV{VCPKG_GI_LIBDIR_VAR} "LIB")
-elseif(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
-    set(ENV{VCPKG_GI_LIBDIR_VAR} "DYLD_LIBRARY_PATH")
-else()
-    set(ENV{VCPKG_GI_LIBDIR_VAR} "LD_LIBRARY_PATH")
-endif()
-vcpkg_install_meson(ADD_BIN_TO_PATH)
+foreach(buildtype IN ITEMS "debug" "release")
+    if(DEFINED VCPKG_BUILD_TYPE AND NOT VCPKG_BUILD_TYPE STREQUAL buildtype)
+        continue()
+    endif()
+    # VCPKG_GI_... variables are used by, and scoped to, giscanner
+    set(ENV{VCPKG_GI_LIBDIR} "${CURRENT_INSTALLED_DIR}/debug/lib")
+    set(ENV{VCPKG_GI_DATADIR} "${CURRENT_PACKAGES_DIR}/debug/share")
+    file(MAKE_DIRECTORY "$ENV{VCPKG_GI_DATADIR}/gir-1.0")
+    if(VCPKG_TARGET_IS_WINDOWS)
+        set(ENV{VCPKG_GI_LIBDIR_VAR} "LIB")
+    elseif(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
+        set(ENV{VCPKG_GI_LIBDIR_VAR} "DYLD_LIBRARY_PATH")
+    else()
+        set(ENV{VCPKG_GI_LIBDIR_VAR} "LD_LIBRARY_PATH")
+    endif()
+    block(SCOPE_FOR VARIABLES)
+    set(VCPKG_BUILD_TYPE "${buildtype}")
+    vcpkg_install_meson(ADD_BIN_TO_PATH)
+    endblock()
+endforeach()
 vcpkg_copy_pdbs()
 vcpkg_fixup_pkgconfig()
 
@@ -82,6 +93,9 @@ vcpkg_fixup_pkgconfig()
 if(EXISTS "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/gir")
     foreach(lib IN ITEMS GLib-2.0 GObject-2.0.gir GModule-2.0.gir Gio-2.0.gir)
         file(COPY "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/gir/${gir}" DESTINATION "${CURRENT_PACKAGES_DIR}/share/gir-1.0")
+        if(NOT VCPKG_BUILD_TYPE)
+            file(COPY "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/gir/${gir}" DESTINATION "${CURRENT_PACKAGES_DIR}/debug/share/gir-1.0")
+        endif()
     endforeach()
 endif()
 
@@ -104,7 +118,11 @@ if(VCPKG_TARGET_IS_WINDOWS)
     file(REMOVE ${_pyd_lib_files})
 endif()
 
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
+
+set(VCPKG_POLICY_ALLOW_DEBUG_SHARE enabled) # Keep debug/share/gir-1.0
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share/aclocal")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share/gobject-introspection-1.0")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share/man")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/share/man")
 
 file(COPY "${CURRENT_PORT_DIR}/vcpkg-port-config.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
