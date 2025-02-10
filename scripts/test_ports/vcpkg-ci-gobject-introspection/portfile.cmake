@@ -15,4 +15,4 @@ vcpkg_cmake_configure(
         ${options}
         "-DPKG_CONFIG_EXECUTABLE=${PKGCONFIG}"
 )
-vcpkg_cmake_build()
+vcpkg_cmake_build(ADD_BIN_TO_PATH)
