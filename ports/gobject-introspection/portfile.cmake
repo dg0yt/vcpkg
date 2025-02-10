@@ -16,7 +16,6 @@ vcpkg_extract_source_archive(
 )
 
 vcpkg_find_acquire_program(PKGCONFIG)
-vcpkg_get_vcpkg_installed_python(PYTHON3)
 
 set(additional_binaries "")
 set(options "")
@@ -28,6 +27,7 @@ if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
 endif()
 if(VCPKG_CROSSCOMPILING)
     message(STATUS "Cross build. Only supported when the host can execute target binaries.")
+    vcpkg_get_vcpkg_installed_python(PYTHON3 INTERPRETER)
     list(APPEND options -Dgi_cross_use_prebuilt_gi=true)
     list(APPEND additional_binaries
         "g-ir-compiler='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-compiler${VCPKG_TARGET_EXECUTABLE_SUFFIX}'"
@@ -35,6 +35,7 @@ if(VCPKG_CROSSCOMPILING)
     )
     file(COPY "${CURRENT_HOST_INSTALLED_DIR}/share/gobject-introspection-1.0/gdump.c" DESTINATION "${CURRENT_PACKAGES_DIR}/share/gobject-introspection-1.0")
 else()
+    vcpkg_get_vcpkg_installed_python(PYTHON3)
     vcpkg_find_acquire_program(FLEX)
     vcpkg_find_acquire_program(BISON)
     list(APPEND additional_binaries
