@@ -21,20 +21,22 @@ set(additional_binaries "")
 set(options "")
 set(options_release "")
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-    message(STATUS "Static triplet. Only building tools.")
+    message(STATUS "Static triplet. Not building introspection data.")
     list(APPEND options_release -Dbuild_introspection_data=false)
     vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
+elseif(VCPKG_CROSSCOMPILING)
+    message(STATUS "Cross build. Building introspection data only supported when the host can execute target binaries.")
 endif()
 if(VCPKG_CROSSCOMPILING)
-    message(STATUS "Cross build. Only supported when the host can execute target binaries.")
-    vcpkg_get_vcpkg_installed_python(PYTHON3 INTERPRETER)
     list(APPEND options -Dgi_cross_use_prebuilt_gi=true)
     list(APPEND additional_binaries
         "g-ir-compiler='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-compiler${VCPKG_TARGET_EXECUTABLE_SUFFIX}'"
         "g-ir-scanner='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-scanner'"
     )
     file(COPY "${CURRENT_HOST_INSTALLED_DIR}/share/gobject-introspection-1.0/gdump.c" DESTINATION "${CURRENT_PACKAGES_DIR}/share/gobject-introspection-1.0")
-else()
+endif()
+
+if("tools" IN_LIST FEATURES)
     vcpkg_get_vcpkg_installed_python(PYTHON3)
     vcpkg_find_acquire_program(FLEX)
     vcpkg_find_acquire_program(BISON)
@@ -42,6 +44,8 @@ else()
         "flex='${FLEX}'"
         "bison='${BISON}'"
     )
+else()
+    vcpkg_get_vcpkg_installed_python(PYTHON3 INTERPRETER)
 endif()
 
 if("cairo" IN_LIST FEATURES)
@@ -84,8 +88,9 @@ vcpkg_fixup_pkgconfig()
 
 # Cf. https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/517
 if(EXISTS "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/gir")
-    foreach(lib IN ITEMS GLib-2.0 GObject-2.0.gir GModule-2.0.gir Gio-2.0.gir)
-        file(COPY "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/gir/${gir}" DESTINATION "${CURRENT_PACKAGES_DIR}/share/gir-1.0")
+    foreach(lib IN ITEMS GLib-2.0 GObject-2.0 GModule-2.0 Gio-2.0)
+        file(COPY "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/gir/${lib}.gir" DESTINATION "${CURRENT_PACKAGES_DIR}/share/gir-1.0")
+        file(COPY "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/gir/${lib}.typelib" DESTINATION "${CURRENT_PACKAGES_DIR}/lib/girepository-1.0")
     endforeach()
 endif()
 
@@ -110,6 +115,10 @@ endif()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/share/man")
+if(NOT "tools" IN_LIST FEATURES)
+    # Ports shall use host tools.
+    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/tools")
+endif()
 
 file(COPY "${CURRENT_PORT_DIR}/vcpkg-port-config.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
 

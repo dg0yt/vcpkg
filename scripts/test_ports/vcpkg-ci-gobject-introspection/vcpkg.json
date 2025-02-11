@@ -16,18 +16,25 @@
     }
   ],
   "default-features": [
-    "cairo",
+    "ports",
     "run-test"
   ],
   "features": {
-    "cairo": {
-      "description": "Test the cairo feature",
+    "ports": {
+      "description": "Test introspection in ports",
       "dependencies": [
         {
           "name": "gobject-introspection",
           "default-features": false,
           "features": [
             "cairo"
+          ]
+        },
+        {
+          "name": "harfbuzz",
+          "default-features": false,
+          "features": [
+            "introspection"
           ]
         }
       ]

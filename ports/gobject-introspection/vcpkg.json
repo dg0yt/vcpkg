@@ -14,7 +14,10 @@
     "glib",
     {
       "name": "gobject-introspection",
-      "host": true
+      "host": true,
+      "features": [
+        "tools"
+      ]
     },
     "libffi",
     {
@@ -39,6 +42,10 @@
           ]
         }
       ]
+    },
+    "tools": {
+      "description": "Build the tools",
+      "supports": "native"
     }
   }
 }

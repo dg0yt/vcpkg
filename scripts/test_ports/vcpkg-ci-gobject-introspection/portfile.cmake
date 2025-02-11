@@ -1,6 +1,6 @@
 set(VCPKG_POLICY_EMPTY_PACKAGE enabled)
 set(VCPKG_BUILD_TYPE release) # vcpkg limitation
-set(ENV{GI_TYPELIB_PATH} "${CURRENT_INSTALLED_DIR}/share/gir-1.0")
+set(ENV{GI_TYPELIB_PATH} "${CURRENT_INSTALLED_DIR}/lib/girepository-1.0")
 
 vcpkg_find_acquire_program(PKGCONFIG)
 
