@@ -1,4 +1,5 @@
 {
+  "$comment": "TODO: Move arm to ci.baseline.txt",
   "name": "gobject-introspection",
   "version": "1.80.1",
   "description": [
@@ -8,7 +9,7 @@
   ],
   "homepage": "https://gi.readthedocs.io/en/latest/",
   "license": null,
-  "supports": "!(static & staticcrt) & !uwp",
+  "supports": "!(static & staticcrt) & !uwp & !(arm & windows)",
   "dependencies": [
     "glib",
     {
