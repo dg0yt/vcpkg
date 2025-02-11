@@ -53,6 +53,7 @@ endif()
 vcpkg_configure_meson(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
+        -Ddoctool=disabled
         -Dgtk_doc=false
         ${options}
     OPTIONS_DEBUG
