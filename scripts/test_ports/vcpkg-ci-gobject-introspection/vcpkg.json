@@ -11,6 +11,12 @@
       "default-features": false
     },
     {
+      "name": "vcpkg-ci-gobject-introspection",
+      "host": true,
+      "platform": "windows",
+      "default-features": false
+    },
+    {
       "name": "vcpkg-cmake",
       "host": true
     }
