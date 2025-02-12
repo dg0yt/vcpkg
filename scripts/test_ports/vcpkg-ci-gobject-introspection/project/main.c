@@ -21,9 +21,8 @@ int main()
 
     // https://harfbuzz.github.io/harfbuzz-hb-ot-color.html#HB-COLOR:CAPS
     // https://harfbuzz.github.io/harfbuzz-hb-ot-color.html#hb-color-t
-    const uint bgra_red = 0x00008000;
     GIArgument in_args[1];
-    in_args[0].v_uint32 = bgra_red;  
+    in_args[0].v_uint32 = 0x00001200;  // BGRA read 0x12
 
     GIArgument retval;
     if (!g_function_info_invoke((GIFunctionInfo *)base_info, (const GIArgument *)&in_args, 1, NULL, 0, &retval, &error))
@@ -32,9 +31,9 @@ int main()
         return 1;
     }
 
-    if (retval.v_uint8 != 0x80)
+    if (retval.v_uint8 != 0x12)
     {
-        g_error("ERROR: Expect: 0x80, actual: %0xd\n", retval.v_uint8);
+        g_error("ERROR: Expect: 0x12, actual: %0xd\n", retval.v_uint8);
         return 1;
     }
 
