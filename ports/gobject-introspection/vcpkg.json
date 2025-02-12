@@ -31,7 +31,7 @@
   ],
   "features": {
     "cairo": {
-      "description": "Provide cairo support",
+      "description": "Install introspection data for cairo.",
       "supports": "!static",
       "dependencies": [
         {
@@ -44,8 +44,10 @@
       ]
     },
     "tools": {
-      "description": "Build the tools",
-      "supports": "native"
+      "description": "Install tools which on the target platform.",
+      "dependencies": [
+        "python3"
+      ]
     }
   }
 }

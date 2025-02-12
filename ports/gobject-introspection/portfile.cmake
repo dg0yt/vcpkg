@@ -20,32 +20,35 @@ vcpkg_find_acquire_program(PKGCONFIG)
 set(additional_binaries "")
 set(options "")
 set(options_release "")
+
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     message(STATUS "Static triplet. Not building introspection data.")
     list(APPEND options_release -Dbuild_introspection_data=false)
     vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 elseif(VCPKG_CROSSCOMPILING)
-    message(STATUS "Cross build. Building introspection data only supported when the host can execute target binaries.")
-endif()
-if(VCPKG_CROSSCOMPILING)
-    list(APPEND options -Dgi_cross_use_prebuilt_gi=true)
-    list(APPEND additional_binaries
-        "g-ir-compiler='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-compiler${VCPKG_TARGET_EXECUTABLE_SUFFIX}'"
-        "g-ir-scanner='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-scanner'"
-    )
-    file(COPY "${CURRENT_HOST_INSTALLED_DIR}/share/gobject-introspection-1.0/gdump.c" DESTINATION "${CURRENT_PACKAGES_DIR}/share/gobject-introspection-1.0")
+    message(STATUS "Cross build. Building introspection data supported only if the host can execute target binaries.")
 endif()
 
 if("tools" IN_LIST FEATURES)
-    vcpkg_get_vcpkg_installed_python(PYTHON3)
     vcpkg_find_acquire_program(FLEX)
     vcpkg_find_acquire_program(BISON)
     list(APPEND additional_binaries
+        "python='${CURRENT_INSTALLED_DIR}/tools/python3/python3${VCPKG_TARGET_EXECUTABLE_SUFFIX}'"
         "flex='${FLEX}'"
         "bison='${BISON}'"
     )
+elseif(VCPKG_CROSSCOMPILING)
+    list(APPEND options -Dgi_cross_use_prebuilt_gi=true)
+    list(APPEND additional_binaries
+        "python='${CURRENT_HOST_INSTALLED_DIR}/tools/python3/python3${VCPKG_HOST_EXECUTABLE_SUFFIX}'"
+        "g-ir-compiler='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-compiler${VCPKG_HOST_EXECUTABLE_SUFFIX}'"
+        "g-ir-scanner='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-scanner'"
+    )
+    file(COPY "${CURRENT_HOST_INSTALLED_DIR}/share/gobject-introspection-1.0/gdump.c" DESTINATION "${CURRENT_PACKAGES_DIR}/share/gobject-introspection-1.0")
 else()
-    vcpkg_get_vcpkg_installed_python(PYTHON3 INTERPRETER)
+    list(APPEND additional_binaries
+        "python='${CURRENT_HOST_INSTALLED_DIR}/tools/python3/python3${VCPKG_HOST_EXECUTABLE_SUFFIX}'"
+    )
 endif()
 
 if("cairo" IN_LIST FEATURES)
@@ -59,6 +62,7 @@ vcpkg_configure_meson(
     OPTIONS
         -Ddoctool=disabled
         -Dgtk_doc=false
+        -DVCPKG_TARGET_TRIPLET=${TARGET_TRIPLET}
         ${options}
     OPTIONS_DEBUG
         -Dbuild_introspection_data=false
@@ -66,12 +70,12 @@ vcpkg_configure_meson(
     OPTIONS_RELEASE
         ${options_release}
     ADDITIONAL_BINARIES
-        "python='${PYTHON3}'"
         ${additional_binaries}
 )
 
-# VCPKG_GI_... variables are used by, and scoped to, giscanner
 set(ENV{PKG_CONFIG} "${PKGCONFIG}")
+vcpkg_host_path_list(PREPEND ENV{PKG_CONFIG_PATH} "${CURRENT_INSTALLED_DIR}/lib/pkgconfig")
+# VCPKG_GI_... variables are used by, and scoped to, giscanner
 set(ENV{VCPKG_GI_LIBDIR} "${CURRENT_INSTALLED_DIR}/lib")
 set(ENV{VCPKG_GI_DATADIR} "${CURRENT_PACKAGES_DIR}/share")
 file(MAKE_DIRECTORY "$ENV{VCPKG_GI_DATADIR}/gir-1.0")
@@ -97,16 +101,25 @@ endif()
 file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/tools/${PORT}")
 foreach(script IN ITEMS g-ir-annotation-tool g-ir-scanner)
     if(VCPKG_CROSSCOMPILING)
+        # Host scripts, to run with host python.
         file(REMOVE "${CURRENT_PACKAGES_DIR}/bin/${script}")
         file(COPY "${CURRENT_HOST_INSTALLED_DIR}/tools/${PORT}/${script}" DESTINATION "${CURRENT_PACKAGES_DIR}/tools/${PORT}")
     else()
         file(RENAME "${CURRENT_PACKAGES_DIR}/bin/${script}" "${CURRENT_PACKAGES_DIR}/tools/${PORT}/${script}")
-        vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/tools/${PORT}/${script}" "filedir, '..', '..', 'lib', 'gobject-introspection'" "filedir, '..', '..', '..', '${TARGET_TRIPLET}', 'lib', 'gobject-introspection'")
     endif()
     file(REMOVE "${CURRENT_PACKAGES_DIR}/debug/bin/${script}")
 endforeach()
 
-vcpkg_copy_tools(TOOL_NAMES g-ir-compiler g-ir-generate g-ir-inspect AUTO_CLEAN)
+if("tools" IN_LIST FEATURES)
+    vcpkg_copy_tools(TOOL_NAMES g-ir-compiler g-ir-generate g-ir-inspect AUTO_CLEAN)
+else()
+    foreach(directory IN ITEMS "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
+        file(GLOB items "${directory}/*")
+        if("${items}" STREQUAL "")
+            file(REMOVE_RECURSE "${directory}")
+        endif()
+    endforeach()
+endif()
 
 if(VCPKG_TARGET_IS_WINDOWS)
     file(GLOB _pyd_lib_files "${CURRENT_PACKAGES_DIR}/lib/gobject-introspection/giscanner/_giscanner.*.lib" "${CURRENT_PACKAGES_DIR}/debug/lib/gobject-introspection/giscanner/_giscanner.*.lib")
@@ -115,10 +128,6 @@ endif()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/share/man")
-if(NOT "tools" IN_LIST FEATURES)
-    # Ports shall use host tools.
-    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/tools")
-endif()
 
 file(COPY "${CURRENT_PORT_DIR}/vcpkg-port-config.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
 
