@@ -62,7 +62,7 @@ vcpkg_configure_meson(
     OPTIONS
         -Ddoctool=disabled
         -Dgtk_doc=false
-        -DVCPKG_TARGET_TRIPLET=${TARGET_TRIPLET}
+        -DVCPKG_HOST_TRIPLET=${HOST_TRIPLET}
         ${options}
     OPTIONS_DEBUG
         -Dbuild_introspection_data=false
