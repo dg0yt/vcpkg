@@ -30,25 +30,21 @@ elseif(VCPKG_CROSSCOMPILING)
 endif()
 
 if("tools" IN_LIST FEATURES)
+    vcpkg_get_vcpkg_installed_python(PYTHON3)
     vcpkg_find_acquire_program(FLEX)
     vcpkg_find_acquire_program(BISON)
     list(APPEND additional_binaries
-        "python='${CURRENT_INSTALLED_DIR}/tools/python3/python3${VCPKG_TARGET_EXECUTABLE_SUFFIX}'"
         "flex='${FLEX}'"
         "bison='${BISON}'"
     )
 elseif(VCPKG_CROSSCOMPILING)
+    vcpkg_get_vcpkg_installed_python(PYTHON3 INTERPRETER)
     list(APPEND options -Dgi_cross_use_prebuilt_gi=true)
     list(APPEND additional_binaries
-        "python='${CURRENT_HOST_INSTALLED_DIR}/tools/python3/python3${VCPKG_HOST_EXECUTABLE_SUFFIX}'"
         "g-ir-compiler='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-compiler${VCPKG_HOST_EXECUTABLE_SUFFIX}'"
         "g-ir-scanner='${CURRENT_HOST_INSTALLED_DIR}/tools/gobject-introspection/g-ir-scanner'"
     )
     file(COPY "${CURRENT_HOST_INSTALLED_DIR}/share/gobject-introspection-1.0/gdump.c" DESTINATION "${CURRENT_PACKAGES_DIR}/share/gobject-introspection-1.0")
-else()
-    list(APPEND additional_binaries
-        "python='${CURRENT_HOST_INSTALLED_DIR}/tools/python3/python3${VCPKG_HOST_EXECUTABLE_SUFFIX}'"
-    )
 endif()
 
 if("cairo" IN_LIST FEATURES)
@@ -70,6 +66,7 @@ vcpkg_configure_meson(
     OPTIONS_RELEASE
         ${options_release}
     ADDITIONAL_BINARIES
+        "python='${PYTHON3}'"
         ${additional_binaries}
 )
 
