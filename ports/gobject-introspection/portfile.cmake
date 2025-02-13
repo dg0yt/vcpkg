@@ -58,6 +58,8 @@ vcpkg_configure_meson(
     OPTIONS
         -Ddoctool=disabled
         -Dgtk_doc=false
+        # When running g-ir-scanner with host python,
+        # help it find the host giscanner python extension.
         -DVCPKG_HOST_TRIPLET=${HOST_TRIPLET}
         ${options}
     OPTIONS_DEBUG
@@ -97,25 +99,23 @@ endif()
 
 file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/tools/${PORT}")
 foreach(script IN ITEMS g-ir-annotation-tool g-ir-scanner)
-    if(VCPKG_CROSSCOMPILING)
-        # Host scripts, to run with host python.
+    if("tools" IN_LIST FEATURES)
+        # User requested binaries for the target.
+        file(RENAME "${CURRENT_PACKAGES_DIR}/bin/${script}" "${CURRENT_PACKAGES_DIR}/tools/${PORT}/${script}")
+    else()
+        # Scripts needed nevertheless, for finding target directories.
         file(REMOVE "${CURRENT_PACKAGES_DIR}/bin/${script}")
         file(COPY "${CURRENT_HOST_INSTALLED_DIR}/tools/${PORT}/${script}" DESTINATION "${CURRENT_PACKAGES_DIR}/tools/${PORT}")
-    else()
-        file(RENAME "${CURRENT_PACKAGES_DIR}/bin/${script}" "${CURRENT_PACKAGES_DIR}/tools/${PORT}/${script}")
     endif()
     file(REMOVE "${CURRENT_PACKAGES_DIR}/debug/bin/${script}")
 endforeach()
 
+file(GLOB dlls "${CURRENT_PACKAGES_DIR}/bin/*")
 if("tools" IN_LIST FEATURES)
     vcpkg_copy_tools(TOOL_NAMES g-ir-compiler g-ir-generate g-ir-inspect AUTO_CLEAN)
-else()
-    foreach(directory IN ITEMS "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
-        file(GLOB items "${directory}/*")
-        if("${items}" STREQUAL "")
-            file(REMOVE_RECURSE "${directory}")
-        endif()
-    endforeach()
+elseif("${dlls}" STREQUAL "")
+    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin")
+    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/bin")
 endif()
 
 if(VCPKG_TARGET_IS_WINDOWS)
