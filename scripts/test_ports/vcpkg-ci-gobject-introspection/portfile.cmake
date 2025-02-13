@@ -1,5 +1,11 @@
 set(VCPKG_POLICY_EMPTY_PACKAGE enabled)
 
+# Using release typelibs also for debug:
+# vcpkg is unable to build the debug variant for MSVC
+# as long as it doesn't install the python interpreter
+# for the debug CRT.
+set(ENV{GI_TYPELIB_PATH} "${CURRENT_INSTALLED_DIR}/lib/girepository-1.0")
+
 vcpkg_find_acquire_program(PKGCONFIG)
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS options
@@ -12,9 +18,6 @@ vcpkg_cmake_configure(
     OPTIONS
         ${options}
         "-DPKG_CONFIG_EXECUTABLE=${PKGCONFIG}"
-    OPTIONS_RELEASE
         "-DGI_TYPELIB_PATH=${CURRENT_INSTALLED_DIR}/lib/girepository-1.0"
-    OPTIONS_DEBUG
-        "-DGI_TYPELIB_PATH=${CURRENT_INSTALLED_DIR}/debug/lib/girepository-1.0"
 )
 vcpkg_cmake_build(ADD_BIN_TO_PATH)

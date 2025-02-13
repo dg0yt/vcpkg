@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.30)
 project(gobject-introspection-test C)
 
 option(RUN_TEST "Run the test program")
-set(GI_TYPELIB_PATH "" CACHE STRING "Introspection data dir")
 
 set(CMAKE_SKIP_RPATH FALSE)
 
@@ -15,10 +14,9 @@ target_link_libraries(main-pkgconfig PRIVATE
 )
 
 add_custom_target(run-test
-    COMMAND "${CMAKE_COMMAND}" -E env "GI_TYPELIB_PATH=${GI_TYPELIB_PATH}" "$<TARGET_FILE:main-pkgconfig>"
+    COMMAND main-pkgconfig
     COMMENT "Running the test program"
 )
-
 if(RUN_TEST)
     set_target_properties(run-test PROPERTIES EXCLUDE_FROM_ALL 0)
 endif()
