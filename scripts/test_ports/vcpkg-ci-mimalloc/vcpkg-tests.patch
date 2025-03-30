@@ -1,8 +1,8 @@
 diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
-index 5905613c..19e8ac34 100644
+index 5905613..a5e6c91 100644
 --- a/test/CMakeLists.txt
 +++ b/test/CMakeLists.txt
-@@ -16,10 +16,11 @@ if (NOT CMAKE_BUILD_TYPE)
+@@ -16,10 +16,16 @@ if (NOT CMAKE_BUILD_TYPE)
  endif()
  
  # Import mimalloc (if installed)
@@ -10,15 +10,21 @@ index 5905613c..19e8ac34 100644
 +find_package(mimalloc 3.0 CONFIG REQUIRED)
  message(STATUS "Found mimalloc installed at: ${MIMALLOC_LIBRARY_DIR} (${MIMALLOC_VERSION_DIR})")
  
++if(WIN32)
++  add_library(mimalloc-test-override-dep SHARED main-override-dep.cpp)
++else()
++  add_library(mimalloc-test-override-dep INTERFACE)
++endif()
  
 +if(BUILD_SHARED_LIBS)
  # link with a dynamic shared library
  # use `LD_PRELOAD` to actually override malloc/free at runtime with mimalloc
  add_executable(dynamic-override  main-override.c)
-@@ -27,15 +28,19 @@ target_link_libraries(dynamic-override PUBLIC mimalloc)
+@@ -27,15 +33,20 @@ target_link_libraries(dynamic-override PUBLIC mimalloc)
  
  add_executable(dynamic-override-cxx  main-override.cpp)
  target_link_libraries(dynamic-override-cxx PUBLIC mimalloc)
++target_link_libraries(dynamic-override-cxx PRIVATE mimalloc-test-override-dep)
 +endif()
  
  
@@ -35,13 +41,14 @@ index 5905613c..19e8ac34 100644
  # overriding with a static library works too if using the `mimalloc-override.h`
  # header to redefine malloc/free. (the library already overrides new/delete)
  add_executable(static-override-static main-override-static.c)
-@@ -49,7 +52,9 @@ target_link_libraries(static-override PUBLIC mimalloc-static)
+@@ -49,7 +60,10 @@ target_link_libraries(static-override PUBLIC mimalloc-static)
  
  add_executable(static-override-cxx  main-override.cpp)
  target_link_libraries(static-override-cxx PUBLIC mimalloc-static)
++target_link_libraries(static-override-cxx PRIVATE mimalloc-test-override-dep)
 +endif()
  
 +include("${VCPKG_TESTS}")
-
+ 
  ## test memory errors
  add_executable(test-wrong  test-wrong.c)

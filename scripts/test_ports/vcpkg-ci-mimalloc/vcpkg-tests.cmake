@@ -28,6 +28,7 @@ endif()
 
 add_executable(pkgconfig-override-cxx main-override.cpp)
 target_link_libraries(pkgconfig-override-cxx PRIVATE PkgConfig::PC_MIMALLOC)
+target_link_libraries(pkgconfig-override-cxx PRIVATE mimalloc-test-override-dep)
 
 # Runtime
 
