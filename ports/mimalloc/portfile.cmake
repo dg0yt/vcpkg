@@ -5,6 +5,7 @@ vcpkg_from_github(
     SHA512 fa47dd7ecfe8e8afb691490a3317ce89e92c4d322624d4373a113beb10d4aa44b43359fea84beb43ad9be5cddd4f262a5c933177c6096b70d2cee53cb6e9620b
     HEAD_REF master
     PATCHES
+        pkgconfig-cxx.diff
         public-pthreads.diff
 )
 
