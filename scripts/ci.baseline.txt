@@ -396,9 +396,6 @@ gherkin-c:x64-windows=skip
 gherkin-c:x64-windows-static=skip
 gherkin-c:x64-windows-static-md=skip
 gherkin-c:x86-windows=skip
-# Wants to run target binaries
-gobject-introspection:arm64-windows=skip
-gobject-introspection:arm64-windows-static-md=skip
 gl3w:arm-neon-android=fail
 gl3w:arm64-android=fail
 gl3w:x64-android=fail

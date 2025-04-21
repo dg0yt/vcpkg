@@ -1,4 +1,5 @@
 {
+  "$comment": "TODO: Move arm to ci.baseline.txt",
   "name": "gobject-introspection",
   "version": "1.80.1",
   "description": [
@@ -8,12 +9,15 @@
   ],
   "homepage": "https://gi.readthedocs.io/en/latest/",
   "license": null,
-  "supports": "!(static & staticcrt) & !uwp",
+  "supports": "!(static & staticcrt) & !uwp & !(arm & windows)",
   "dependencies": [
     "glib",
     {
       "name": "gobject-introspection",
-      "host": true
+      "host": true,
+      "features": [
+        "tools"
+      ]
     },
     "libffi",
     {
@@ -27,7 +31,7 @@
   ],
   "features": {
     "cairo": {
-      "description": "Provide cairo support",
+      "description": "Install introspection data for cairo.",
       "supports": "!static",
       "dependencies": [
         {
@@ -37,6 +41,12 @@
             "gobject"
           ]
         }
+      ]
+    },
+    "tools": {
+      "description": "Install tools which on the target platform.",
+      "dependencies": [
+        "python3"
       ]
     }
   }
