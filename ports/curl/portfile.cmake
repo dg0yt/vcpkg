@@ -89,6 +89,10 @@ if ("tool" IN_LIST FEATURES)
 endif()
 
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/CURL)
+file(STRINGS "${CURRENT_PACKAGES_DIR}/share/curl/CURLTargets.cmake" interface_link_directories REGEX "INTERFACE_LINK_DIRECTORIES \"\$.VCPKG_IMPORT_PREFIX./lib")
+if(interface_link_directories)
+    message(${Z_VCPKG_BACKCOMPAT_MESSAGE_LEVEL} "share/curl/CURLTargets.cmake must not contain config-dependent paths.")
+endif()
 
 vcpkg_fixup_pkgconfig()
 set(namespec "curl")
