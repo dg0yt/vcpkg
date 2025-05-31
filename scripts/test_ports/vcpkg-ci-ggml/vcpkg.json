@@ -1,0 +1,91 @@
+{
+  "name": "vcpkg-ci-ggml",
+  "version-string": "ci",
+  "description": "Port to validate ggml",
+  "homepage": "https://github.com/microsoft/vcpkg",
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "ggml",
+      "default-features": false
+    },
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    }
+  ],
+  "features": {
+    "blas": {
+      "description": "Enable BLAS support",
+      "dependencies": [
+        {
+          "name": "ggml",
+          "default-features": false,
+          "features": [
+            "blas"
+          ]
+        }
+      ]
+    },
+    "cuda": {
+      "description": "Enable CUDA support",
+      "dependencies": [
+        {
+          "name": "ggml",
+          "default-features": false,
+          "features": [
+            "cuda"
+          ]
+        }
+      ]
+    },
+    "metal": {
+      "description": "Enable Metal support",
+      "dependencies": [
+        {
+          "name": "ggml",
+          "default-features": false,
+          "features": [
+            "metal"
+          ]
+        }
+      ]
+    },
+    "opencl": {
+      "description": "Enable OpenCL support",
+      "dependencies": [
+        {
+          "name": "ggml",
+          "default-features": false,
+          "features": [
+            "opencl"
+          ]
+        }
+      ]
+    },
+    "openmp": {
+      "description": "Enable OpenMP support",
+      "dependencies": [
+        {
+          "name": "ggml",
+          "default-features": false,
+          "features": [
+            "openmp"
+          ]
+        }
+      ]
+    },
+    "vulkan": {
+      "description": "Enable Vulkan support",
+      "dependencies": [
+        {
+          "name": "ggml",
+          "default-features": false,
+          "features": [
+            "vulkan"
+          ]
+        }
+      ]
+    }
+  }
+}
