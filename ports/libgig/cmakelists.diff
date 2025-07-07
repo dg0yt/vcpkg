@@ -1,0 +1,56 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e521b96..90e3879 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,8 +1,7 @@
+-cmake_minimum_required(VERSION 3.1)
++cmake_minimum_required(VERSION 3.10)
+ project(libgig)
+ 
+ if(NOT MSVC)
+-	message(FATAL_ERROR "Please use configure and make, this cmake file is currently only to generate msvc solution files")
+ endif()
+ 
+ #To force the compiler to use C++ 11
+@@ -63,6 +62,11 @@ add_library(libgig
+ 	src/typeinfo.cpp)
+ if(WIN32)
+ 	target_sources(libgig PRIVATE win32/dllmain.cpp)
++elseif(NOT APPLE)
++	find_package(unofficial-libuuid REQUIRED)
++	target_compile_definitions(libgig PRIVATE HAVE_UUID_UUID_H HAVE_UUID_GENERATE)
++	target_link_libraries(libgig PRIVATE unofficial::UUID::uuid)
++	string(APPEND PC_REQUIRES_PRIVATE uuid)
+ endif()
+ 
+ set_target_properties(libgig PROPERTIES PUBLIC_HEADER "${LIBGIG_HEADERS}")
+@@ -120,3 +124,12 @@ install(TARGETS libakai EXPORT libgig-config
+ 	PUBLIC_HEADER DESTINATION include/libgig)
+ install(EXPORT libgig-config NAMESPACE libgig:: DESTINATION share/libgig)
+ 
++if(CMAKE_STATIC_LIBRARY_PREFIX STREQUAL "lib")
++	set_target_properties(libgig libakai PROPERTIES PREFIX "")
++endif()
++
++set(exec_prefix [[${prefix}]])
++set(libdir [[${prefix}/lib]])
++set(includedir [[${prefix}/include]])
++configure_file("${CMAKE_CURRENT_SOURCE_DIR}/gig.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/gig.pc" @ONLY)
++install(FILES "${CMAKE_CURRENT_BINARY_DIR}/gig.pc" DESTINATION "lib/pkgconfig")
+diff --git a/gig.pc.in b/gig.pc.in
+index d222298..303ca35 100644
+--- a/gig.pc.in
++++ b/gig.pc.in
+@@ -1,6 +1,6 @@
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+-libdir=@libdir@/libgig
++libdir=@libdir@
+ includedir=@includedir@/libgig
+ 
+ Name: gig
+@@ -8,3 +8,4 @@ Description: C++ library for accessing Gigasampler/GigaStudio, DLS, SoundFont an
+ Version: @VERSION@
+ Libs: -L${libdir} -lgig
+ Cflags: -I${includedir}
++Requires.private: @PC_REQUIRES_PRIVATE@

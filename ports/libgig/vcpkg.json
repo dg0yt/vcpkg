@@ -1,11 +1,15 @@
 {
   "name": "libgig",
-  "version": "4.4.1",
+  "version": "4.5.0",
   "description": "C++ library for loading Gigasampler files and DLS Level 1/2 files",
   "homepage": "https://www.linuxsampler.org/libgig/",
   "license": "GPL-2.0-or-later",
-  "supports": "windows & !uwp",
+  "supports": "!uwp",
   "dependencies": [
+    {
+      "name": "libuuid",
+      "platform": "!osx & !windows"
+    },
     {
       "name": "vcpkg-cmake",
       "host": true
