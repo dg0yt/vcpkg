@@ -20,7 +20,6 @@ endif()
 
 vcpkg_make_configure(
     SOURCE_PATH "${SOURCE_PATH}/libltdl"
-    AUTORECONF
     OPTIONS
         --enable-ltdl-install
         ${OPTIONS}
