@@ -1,0 +1,45 @@
+diff --git a/configure.ac b/configure.ac
+index 2accf2c..d466348 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -178,13 +178,14 @@ if test "x$have_android" = "xyes"; then
+ 
+     CXXFLAGS="$CXXFLAGS -stdlib=libc++"
+     LDFLAGS="$LDFLAGS -lc++"
++    ANDROID_LIBS="-llog"
+ 
+ fi
+ 
+ if test "x$have_android_sensor" = "xyes"; then
+     AC_DEFINE([HAVE_ANDROID_SENSOR], [1],
+               [Define if Android sensor API is available])
+ 
+-    ANDROID_LIBS="-landroid"
++    ANDROID_LIBS="$ANDROID_LIBS -landroid"
+     ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/androidsensor"
+ fi
+ 
+diff --git a/hamlib.pc.in b/hamlib.pc.in
+index 4da24fe..11a596b 100644
+--- a/hamlib.pc.in
++++ b/hamlib.pc.in
+@@ -10,4 +10,4 @@ Version: @PACKAGE_VERSION@
+ Requires.private: @HAMLIB_PC_LIBUSB@
+ Cflags: -I${includedir} @PTHREAD_CFLAGS@
+ Libs: -L${libdir} -lhamlib
+-Libs.private: @MATH_LIBS@ @DL_LIBS@ @NET_LIBS@ @PTHREAD_LIBS@
++Libs.private: @MATH_LIBS@ @DL_LIBS@ @NET_LIBS@ @PTHREAD_LIBS@ @ANDROID_LIBS@
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 115128d..3fa567e 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -24,7 +24,7 @@ libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info
+ 
+ libhamlib_la_LIBADD = $(top_builddir)/lib/libmisc.la $(top_builddir)/security/libsecurity.la \
+-	$(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS) $(NET_LIBS) $(MATH_LIBS) $(LIBUSB_LIBS) $(INDI_LIBS)
+-
++	$(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS) $(NET_LIBS) $(MATH_LIBS) $(LIBUSB_LIBS) $(INDI_LIBS) \
++	$(ANDROID_LIBS)
+ libhamlib_la_DEPENDENCIES = $(top_builddir)/lib/libmisc.la $(top_builddir)/security/libsecurity.la $(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS) 
+ 
+ EXTRA_DIST = hamlibdatetime.h.in band_changed.c

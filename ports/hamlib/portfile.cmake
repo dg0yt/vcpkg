@@ -3,6 +3,8 @@ vcpkg_from_github(
     REPO Hamlib/Hamlib
     REF "${VERSION}"
     SHA512 11522382a00f490849a788e8352ac445883f7b86a9fd6f6e17c063721a1a53819f208a21c4b6623d4485946cf9446eccddfee8605d60f96381b4ac7cbee398da
+    PATCHES
+        fix-android-pkgconfig-libs.patch
 )
 
 vcpkg_list(SET options)
@@ -15,10 +17,6 @@ if("xml" IN_LIST FEATURES)
     list(APPEND options --with-xml-support=yes)
 else()
     list(APPEND options --with-xml-support=no)
-endif()
-
-if(VCPKG_TARGET_IS_ANDROID)
-    list(APPEND options "LIBS=\$LIBS -llog")
 endif()
 
 vcpkg_make_configure(
